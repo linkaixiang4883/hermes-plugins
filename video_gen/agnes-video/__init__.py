@@ -35,7 +35,6 @@ from __future__ import annotations
 import base64
 import logging
 import mimetypes
-import os
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -52,6 +51,7 @@ from agent.video_gen_provider import (
 # Reuse the shared reference-image normalizer from the image_gen provider
 # module (same logic — coerce None/str/list into a clean list of strings).
 from agent.image_gen_provider import normalize_reference_images
+from agent.secret_scope import get_secret
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ class AgnesVideoGenProvider(VideoGenProvider):
         return self.API_BASE.removesuffix("/v1") + "/agnesapi"
 
     def is_available(self) -> bool:
-        return bool(os.environ.get(self.ENV_VAR))
+        return bool(get_secret(self.ENV_VAR))
 
     def list_models(self) -> List[Dict[str, Any]]:
         return [
@@ -190,7 +190,7 @@ class AgnesVideoGenProvider(VideoGenProvider):
                 provider=self.name,
             )
 
-        api_key = os.environ.get(self.ENV_VAR)
+        api_key = get_secret(self.ENV_VAR)
         if not api_key:
             return error_response(
                 error=f"{self.ENV_VAR} not set. Get your key at {self.SIGNUP_URL}",

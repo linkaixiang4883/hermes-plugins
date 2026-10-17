@@ -32,7 +32,6 @@ import base64
 import datetime
 import logging
 import mimetypes
-import os
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -49,6 +48,7 @@ from agent.image_gen_provider import (
     save_url_image,
     success_response,
 )
+from agent.secret_scope import get_secret
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +154,7 @@ class AgnesImageGenProvider(ImageGenProvider):
         return self.DISPLAY_NAME
 
     def is_available(self) -> bool:
-        return bool(os.environ.get(self.ENV_VAR))
+        return bool(get_secret(self.ENV_VAR))
 
     def list_models(self) -> List[Dict[str, Any]]:
         return [
@@ -208,7 +208,7 @@ class AgnesImageGenProvider(ImageGenProvider):
                 aspect_ratio=aspect,
             )
 
-        api_key = os.environ.get(self.ENV_VAR)
+        api_key = get_secret(self.ENV_VAR)
         if not api_key:
             return error_response(
                 error=f"{self.ENV_VAR} not set. Get your key at {self.SIGNUP_URL}",

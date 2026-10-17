@@ -1,5 +1,5 @@
 name: agnes-video
-version: 1.3.0
+version: 1.3.1
 description: "Agnes AI 视频生成后端 —— 一个插件两个 provider：agnes-video（国际站 apihub.agnes-ai.com，AGNES_API_KEY）与 agnes-cn-video（国内站 api.agnes-ai.cn，AGNES_CN_API_KEY）。agnes-video-2.5 / 2.5-flash。文生视频、图生视频、关键帧动画，走异步任务 API（POST /v1/videos + GET /agnesapi 轮询），完成后取回并缓存视频文件。"
 author: user
 kind: backend

@@ -1,5 +1,5 @@
 name: agnes-image
-version: 1.2.0
+version: 1.2.1
 description: "Agnes AI 图像生成后端 —— 一个插件两个 provider：agnes-image（国际站 apihub.agnes-ai.com，AGNES_API_KEY）与 agnes-cn-image（国内站 api.agnes-ai.cn，AGNES_CN_API_KEY）。agnes-image-2.5-flash / 2.1-flash（国际站另有 2.0-flash）。文生图、图生图、多图合成，OpenAI 兼容 /v1/images/generations。"
 author: user
 kind: backend
