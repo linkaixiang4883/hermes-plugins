@@ -26,7 +26,7 @@
 | [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` + `agnes-cn-video` | 视频生成后端 —— **一个插件两个 provider**：国际站（`AGNES_API_KEY`）与国内站（`AGNES_CN_API_KEY`），模型集相同 | `backend` | `1.3.0` |
 
 三个 agnes 插件位于仓库的**分类子目录**下（`model-providers/`、`image_gen/`、`video_gen/`），
-且各自带 `AGENT-INSTALL.md`（想交给 agent 装就直接用「给智能体的一句话」那节）。
+且各自带 `AGENT-INSTALL.md`（想交给 agent 装就直接用下面「通过 Agent 安装」那节）。
 
 > **为什么一个插件会注册两个 provider**：Hermes **没有** variant / 子选择概念，多区域只能靠
 > 「一个插件注册多个 provider」实现（内置的 `opencode-zen` 就是这么同时提供 zen 与 go 的）——
@@ -121,22 +121,43 @@ video_gen:
 （`requires hermes >=0.21.6, running X.Y.Z`）——不会出现「装上了却没数据」这种糊涂状态。
 全部 5 个插件都在 **v0.22.2** 上做过端到端实测。
 
-## 给智能体的一句话
+## 通过 Agent 安装（把下面整句复制给你的智能体）
 
-把仓库地址（或 clone 下来的本地路径）+ 想装的插件名交给你的 Hermes Agent，说：
+不想自己敲命令？**整句复制**给任意一个 Hermes Agent 即可 —— 5 个插件都带 `AGENT-INSTALL.md`
+（写给智能体的说明书：前置核对 → 安装 → 验收阶梯 → 故障对照表），它会照着走完，
+不需要你再补任何信息。
 
-> 按 `AGENT-INSTALL.md` 把 **<插件名>** 装上并验收。
+**`model-audit`**：
 
-**5 个插件都有 `AGENT-INSTALL.md`**，所以上面这句对任意一个都成立（它会自己走前置核对 → 安装 →
-验收阶梯 → 故障对照表）。只有两件事你可能需要补一句：
+```
+装 https://github.com/linkaixiang4883/hermes-plugins 里的 model-audit 子目录：按该目录下的 AGENT-INSTALL.md 做，装完重启承载进程，并把 hermes plugins doctor model-audit 的真实输出贴给我。
+```
 
-- **装的是三个 agnes 插件之一** —— 它们要 API key：说明书 §2.2 会让 agent **停下来问你要 key**
-  （agent 不索取、不代填明文，由你自己写进 `<HERMES_HOME>/.env`；只用一家站点时另一把留空即可）。
-- **想让它顺手连重启一起做** —— 模型 provider 与图像 / 视频后端都是**每进程只发现一次**，
-  所以补一句「装完把承载进程重启掉」（桌面端 App / `hermes dashboard` / `gateway run`）。
+**`opencode-go-usage`**：
 
-不确定插件名？照着上面的插件表念目录名即可，例如
-「按 `model-providers/agnes/AGENT-INSTALL.md` 把 agnes 装上并验收」。
+```
+装 https://github.com/linkaixiang4883/hermes-plugins 里的 opencode-go-usage 子目录：按该目录下的 AGENT-INSTALL.md 做，装完重启承载进程，并把 hermes plugins doctor opencode-go-usage 的真实输出贴给我。
+```
+
+**三个 agnes 插件**（需要 API key，提示词里已替你写明"不要索取明文"）：
+
+```
+装 https://github.com/linkaixiang4883/hermes-plugins 里的 model-providers/agnes 子目录：按该目录下的 AGENT-INSTALL.md 做；AGNES_API_KEY / AGNES_CN_API_KEY 我自己填进 .env，你不要索取、不要代填明文；装完重启承载进程，把验收结果和 hermes plugins doctor 的真实输出贴给我。
+```
+
+```
+装 https://github.com/linkaixiang4883/hermes-plugins 里的 image_gen/agnes-image 子目录：按该目录下的 AGENT-INSTALL.md 做；AGNES_API_KEY / AGNES_CN_API_KEY 我自己填进 .env，你不要索取、不要代填明文；装完重启承载进程，把验收结果和 hermes plugins doctor 的真实输出贴给我。
+```
+
+```
+装 https://github.com/linkaixiang4883/hermes-plugins 里的 video_gen/agnes-video 子目录：按该目录下的 AGENT-INSTALL.md 做；AGNES_API_KEY / AGNES_CN_API_KEY 我自己填进 .env，你不要索取、不要代填明文；装完重启承载进程，把验收结果和 hermes plugins doctor 的真实输出贴给我。
+```
+
+**想一次装多个**：把子目录列在一起说全即可，例如
+「装 `linkaixiang4883/hermes-plugins` 里的 `model-providers/agnes` 和 `image_gen/agnes-image`
+两个子目录，各按它自己的 `AGENT-INSTALL.md` 做；key 我自己填，你不要索取明文；装完重启承载进程。」
+
+**两个工具插件不需要 API key**；三个 agnes 插件需要（只用国际站或只用国内站时，另一把留空即可）。
 
 ## 更新 / 卸载
 
