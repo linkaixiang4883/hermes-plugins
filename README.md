@@ -15,8 +15,7 @@
 
 | 目录 | 插件 | 作用 | `kind` | 版本 |
 |---|---|---|---|---|
-| [`model-providers/agnes`](model-providers/agnes/) | `agnes` | Agnes AI 国际站（apihub.agnes-ai.com）模型提供方 | `model-provider` | `1.0.3` |
-| [`model-providers/agnes-cn`](model-providers/agnes-cn/) | `agnes-cn` | Agnes AI 国内站（api.agnes-ai.cn）模型提供方 | `model-provider` | `1.3.3` |
+| [`model-providers/agnes`](model-providers/agnes/) | `agnes` + `agnes-cn` | Agnes AI 模型提供方 —— **一个插件两个 provider**（形态同内置 `opencode-zen`）：国际站（apihub.agnes-ai.com / `AGNES_API_KEY`）与国内站（api.agnes-ai.cn / `AGNES_CN_API_KEY`） | `model-provider` | `1.1.0` |
 | [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` | 国际站图像生成后端 | `backend` | `1.1.2` |
 | [`image_gen/agnes-cn-image`](image_gen/agnes-cn-image/) | `agnes-cn-image` | 国内站图像生成后端 | `backend` | `1.3.2` |
 | [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` | 国际站视频生成后端 | `backend` | `1.2.2` |
@@ -26,12 +25,17 @@
 `owner/repo/` 后面即可：
 
 ```bash
-hermes plugins install linkaixiang4883/hermes-plugins/model-providers/agnes-cn --enable
+hermes plugins install linkaixiang4883/hermes-plugins/model-providers/agnes --enable
 hermes plugins install linkaixiang4883/hermes-plugins/image_gen/agnes-cn-image --enable
 hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-cn-video --enable
 ```
 
-> 这 6 个的 `plugin.yaml` 同样声明 `requires_hermes: ">=0.21.6"`。
+> `model-providers/agnes` 是**一个插件注册两个 provider**（`agnes` 国际站 + `agnes-cn` 国内站）——
+> Hermes 没有 variant / 子选择概念，所以选择器里它们是两个并列条目（这正是内置 `opencode-zen`
+> 呈现 zen / go 的方式）。`agnes-cn` 早先的独立插件（v1.3.3）已并入本插件，其 provider 名与别名
+> （`agnes-ai` / `sapiens`）保持不变，故旧配置与 `auth.json` 无需改动。
+
+> 这 5 个的 `plugin.yaml` 同样声明 `requires_hermes: ">=0.21.6"`。
 > 图像/视频后端的 provider 接口（`agents.image_gen_provider` / `agent.video_gen_provider`）在 v0.21.6 起稳定，
 > 四个后端已实现文档中的全部成员（含 `capabilities()`）。
 

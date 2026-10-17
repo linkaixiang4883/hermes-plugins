@@ -1,8 +1,10 @@
 name: agnes
 kind: model-provider
-version: 1.0.3
-description: "Agnes AI Intl international endpoint (Sapiens AI) — agnes-3.0-flash & agnes-2.5-flash & agnes-2.0-flash, 512K context, OpenAI-compatible. Supports vision, tool calling, and thinking mode."
+version: 1.1.0
+description: "Agnes AI (Sapiens AI) — 国际站 + 国内站，一个插件两个 provider：agnes（apihub.agnes-ai.com，AGNES_API_KEY）与 agnes-cn（api.agnes-ai.cn，AGNES_CN_API_KEY）。两家模型一致：agnes-3.0-flash / agnes-2.5-flash（512K ctx，免费）+ agnes-2.5-pro（1M ctx，reasoning）。OpenAI 兼容，支持 vision、tool calling 与 thinking 模式。"
 author: user
+# 形态照内置 plugins/model-providers/opencode-zen：一个 __init__.py 里 register_provider() 两次，
+# 选择器里就是两个并列条目（Hermes 没有 variant / 子选择概念）。两家差异仅在 base_url / key / 名称别名。
 # 依赖面实测（2026-10-17）：providers.register_provider / providers.base.ProviderProfile
 # 在 v0.21.6 上逐项存在性验证通过（v0.21.6 = 本仓最早的正式 release tag）。
 # 另注（待清理的技术债）：本插件还向 hermes_cli.providers.HERMES_OVERLAYS 与
