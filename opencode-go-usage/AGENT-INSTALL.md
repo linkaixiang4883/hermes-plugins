@@ -83,7 +83,7 @@ hermes config env-path      # 例：C:\Users\<you>\AppData\Local\hermes\.env
 **从 GitHub（或任何 git 托管）**：
 
 ```bash
-hermes plugins install <owner>/<repo>/opencode-go-usage --enable     # owner/repo 简写；也接受完整 URL / GitHub tree URL
+hermes plugins install linkaixiang4883/hermes-plugins/opencode-go-usage --enable     # owner/repo 简写；也接受完整 URL / GitHub tree URL
 ```
 
 **从本地源码目录**（仓库已下载/解压到本机；本目录就是该仓库的子目录 `opencode-go-usage/`）：
@@ -413,7 +413,7 @@ key-based endpoints: `GET https://opencode.ai/zen/go/v1/usage` (OpenCode Go) or
 
 Install (agent-executed):
 
-1. Standard install: `hermes plugins install <owner>/<repo>/opencode-go-usage --enable` (GitHub) or, from a local checkout,
+1. Standard install: `hermes plugins install linkaixiang4883/hermes-plugins/opencode-go-usage --enable` (GitHub) or, from a local checkout,
    `hermes plugins install "file://<repo-root>#opencode-go-usage" --enable` (on Windows the file URL must be `file://C:/…`, two slashes).
    Manual copy still works as the offline fallback.
 2. `hermes plugins enable opencode-go-usage` (needed for the Python backend to be imported).

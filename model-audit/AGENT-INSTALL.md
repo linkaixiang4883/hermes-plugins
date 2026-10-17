@@ -96,7 +96,7 @@ requires_hermes: ">=0.21.6"
   且本包依赖的每个符号在该 tag 上逐一做过**存在性验证**；全量端到端实测版本是 **v0.22.2**。
 - **版本配对由发布方掌握**：每个插件 release（git tag）声明自己需要的 `requires_hermes`；
   使用者按需选 release。升级插件**不会**改动任何 Hermes 组件，只做拦截与提示。
-- **装指定版本**：`hermes plugins install <owner>/<repo>/model-audit --ref <40 位 commit SHA>`
+- **装指定版本**：`hermes plugins install linkaixiang4883/hermes-plugins/model-audit --ref <40 位 commit SHA>`
   —— ⚠️ `--ref` **只接受完整 commit SHA，不接受 tag 名**（拿 tag 的 SHA：`git rev-list -n1 <tag>`）。
   官方 catalog 会同时记 `sha` + `pin`(tag)，是版本锁定最省事的路子。
 
@@ -114,7 +114,7 @@ requires_hermes: ">=0.21.6"
 **从 GitHub（或任何 git 托管）**：
 
 ```bash
-hermes plugins install <owner>/<repo>/model-audit --enable     # owner/repo 简写；也接受完整 URL / GitHub tree URL
+hermes plugins install linkaixiang4883/hermes-plugins/model-audit --enable     # owner/repo 简写；也接受完整 URL / GitHub tree URL
 ```
 
 **从本地源码目录**（仓库已下载/解压到本机；本目录就是该仓库的子目录 `model-audit/`）：
@@ -446,7 +446,7 @@ changes (fail-open in-memory wrap).
 
 Install (agent-executed):
 
-1. Standard install: `hermes plugins install <owner>/<repo>/model-audit --enable` (GitHub) or, from a local checkout,
+1. Standard install: `hermes plugins install linkaixiang4883/hermes-plugins/model-audit --enable` (GitHub) or, from a local checkout,
    `hermes plugins install "file://<repo-root>#model-audit" --enable` (on Windows the file URL must be `file://C:/…`, two slashes).
    Manual copy still works as the offline fallback.
 2. `hermes plugins enable model-audit` (needed for the Python backend to be imported).
