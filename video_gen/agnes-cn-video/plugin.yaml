@@ -1,0 +1,11 @@
+name: agnes-cn-video
+version: 1.4.1
+description: "Agnes AI CN video generation backend (domestic endpoint api.agnes-ai.cn, model agnes-video-v2.0). Text-to-video, image-to-video, and keyframe animation via async task API. Polls for completion and returns cached video file."
+author: user
+kind: backend
+requires_env:
+  - AGNES_CN_API_KEY
+# 依赖面实测（2026-10-17）：agent.image_gen_provider / agent.video_gen_provider /
+# providers.register_provider 与 ctx.register_{image,video}_gen_provider 在 v0.21.6 上
+# 逐一存在性验证通过（v0.21.6 = 本仓最早的正式 release tag）。全量端到端实测：v0.22.2。
+requires_hermes: ">=0.21.6"

@@ -9,11 +9,13 @@
 
 !/model-audit/
 !/opencode-go-usage/
+!/image_gen/
+!/video_gen/
+!/model-providers/
 
-# ↓ 以后要发布更多插件，在这里加一行即可（加完 git add 再提交）
-# !/image_gen/
-# !/video_gen/
-# !/model-providers/
+# 这两个同属自建、但本次**未纳入发布**（要发布就删掉这两行再提交）
+/model-providers/agentrouter/
+/model-providers/sensenova/
 
 # ── 目录内部的「运行期产物」必须单独排掉（白名单只管目录进不进）──────────
 __pycache__/

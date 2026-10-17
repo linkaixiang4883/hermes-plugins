@@ -11,6 +11,30 @@
 每个插件目录里都带一份 **`AGENT-INSTALL.md`**（写给智能体的完整说明书：前置核对 / 安装 / 验收阶梯 / 故障对照表）
 和一整套离线自检脚本（`tests/`）。
 
+### 附带的模型 / 生成后端（同一仓库，按需单选）
+
+| 目录 | 插件 | 作用 | `kind` | 版本 |
+|---|---|---|---|---|
+| [`model-providers/agnes`](model-providers/agnes/) | `agnes` | Agnes AI 国际站（apihub.agnes-ai.com）模型提供方 | `model-provider` | `1.0.2` |
+| [`model-providers/agnes-cn`](model-providers/agnes-cn/) | `agnes-cn` | Agnes AI 国内站（api.agnes-ai.cn）模型提供方 | `model-provider` | `1.3.2` |
+| [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` | 国际站图像生成后端 | `backend` | `1.1.1` |
+| [`image_gen/agnes-cn-image`](image_gen/agnes-cn-image/) | `agnes-cn-image` | 国内站图像生成后端 | `backend` | `1.3.1` |
+| [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` | 国际站视频生成后端 | `backend` | `1.2.1` |
+| [`video_gen/agnes-cn-video`](video_gen/agnes-cn-video/) | `agnes-cn-video` | 国内站视频生成后端 | `backend` | `1.4.1` |
+
+它们在仓库里位于**分类子目录**下（`model-providers/`、`image_gen/`、`video_gen/`），安装时把整套相对路径写进
+`owner/repo/` 后面即可：
+
+```bash
+hermes plugins install linkaixiang4883/hermes-plugins/model-providers/agnes-cn --enable
+hermes plugins install linkaixiang4883/hermes-plugins/image_gen/agnes-cn-image --enable
+hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-cn-video --enable
+```
+
+> 这 6 个的 `plugin.yaml` 同样声明 `requires_hermes: ">=0.21.6"`。
+> 图像/视频后端的 provider 接口（`agents.image_gen_provider` / `agent.video_gen_provider`）在 v0.21.6 起稳定，
+> 四个后端已实现文档中的全部成员（含 `capabilities()`）。
+
 **版本要求**：两个插件的 `plugin.yaml` 都声明了 `requires_hermes: ">=0.21.6"`。
 版本不满足时 Hermes 会**干净跳过**该插件、并在 `hermes plugins list` / `doctor` 里给出原因
 （`requires hermes >=0.21.6, running X.Y.Z`）——不会出现「装上了却没数据」这种糊涂状态。
