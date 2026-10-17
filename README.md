@@ -13,8 +13,9 @@
 | [`model-audit/`](model-audit/) | **模型对账**（仪表盘页） | 逐次记录「请求 alias → 上游实际返回的 model / 路由端点」，在 Model Audit 页对账；用于发现中转掉包 / 降级 / 换路由 | 不需要 | `0.4.1` |
 | [`opencode-go-usage/`](opencode-go-usage/) | **编码套餐用量芯片**（桌面端状态栏） | OpenCode Go / Command Code GOAT 用量（5h / 周 / 月窗口 + 详情面板），只在使用对应套餐模型时显示 | 需要用户**自己的**套餐 key（且已配进 Hermes） | `1.2.1` |
 
-这两个目录里各带一份 **`AGENT-INSTALL.md`**（写给智能体的完整说明书：前置核对 / 安装 / 验收阶梯 / 故障对照表）
-和一整套离线自检脚本（`tests/`）。
+**5 个插件各带一份 `AGENT-INSTALL.md`**（写给智能体的完整说明书：前置核对 / 安装 / 验收阶梯 / 故障对照表），
+交给 agent 就能自助安装验收。`model-audit` / `opencode-go-usage` 另带一整套离线自检脚本（`tests/`）；
+三个 agnes 插件没有 `tests/`，自检改用说明书 §5.2 的**内联探针**（直接断言"两个 provider 都注册了"）。
 
 ### 另外 3 个：Agnes AI 文本 / 图像 / 视频后端（按需选装）
 
@@ -24,8 +25,8 @@
 | [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` + `agnes-cn-image` | 图像生成后端 —— **一个插件两个 provider**：国际站（`AGNES_API_KEY`，含 2.0-flash）与国内站（`AGNES_CN_API_KEY`，无 2.0-flash） | `backend` | `1.2.0` |
 | [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` + `agnes-cn-video` | 视频生成后端 —— **一个插件两个 provider**：国际站（`AGNES_API_KEY`）与国内站（`AGNES_CN_API_KEY`），模型集相同 | `backend` | `1.3.0` |
 
-**这三个插件没有 `AGENT-INSTALL.md`，也没有自检脚本** —— 安装 / 取 key / 验证见下方
-「安装 → Agnes 系列」一节。它们位于仓库的**分类子目录**下（`model-providers/`、`image_gen/`、`video_gen/`）。
+三个 agnes 插件位于仓库的**分类子目录**下（`model-providers/`、`image_gen/`、`video_gen/`），
+且各自带 `AGENT-INSTALL.md`（想交给 agent 装就直接用「给智能体的一句话」那节）。
 
 > **为什么一个插件会注册两个 provider**：Hermes **没有** variant / 子选择概念，多区域只能靠
 > 「一个插件注册多个 provider」实现（内置的 `opencode-zen` 就是这么同时提供 zen 与 go 的）——
@@ -78,7 +79,7 @@ hermes plugins install "file://C:/path/to/hermes-plugins#opencode-go-usage" --en
 >   `cd hermes-plugins && git init -q && git add -A && git commit -qm "vendor snapshot"`。
 > - 首次装会打一行 `custom (unreviewed) source` 警告——不在官方 catalog 里都这样，不是错误。
 > - 没有 git / 完全离线：也可以手工把插件目录复制到 `<HERMES_HOME>/plugins/<插件名>/`，
->   再 `hermes plugins enable <插件名>`（`model-audit` / `opencode-go-usage` 的细节见其 `AGENT-INSTALL.md` §3.2）。
+>   再 `hermes plugins enable <插件名>`（细节见各插件的 `AGENT-INSTALL.md` §3.2）。
 
 ### Agnes 系列（三个后端）
 
@@ -124,25 +125,18 @@ video_gen:
 
 把仓库地址（或 clone 下来的本地路径）+ 想装的插件名交给你的 Hermes Agent，说：
 
-> 用 `hermes plugins install <仓库地址或本地路径>/<插件子目录> --enable` 装上 **<插件名>**，
-> 重启承载插件的进程（桌面端 App / `hermes dashboard` / `gateway run`），
-> 然后跑 `hermes plugins doctor <插件名>` —— 把真实输出贴给我。
+> 按 `AGENT-INSTALL.md` 把 **<插件名>** 装上并验收。
 
-**两种情况**：
+**5 个插件都有 `AGENT-INSTALL.md`**，所以上面这句对任意一个都成立（它会自己走前置核对 → 安装 →
+验收阶梯 → 故障对照表）。只有两件事你可能需要补一句：
 
-- **`model-audit` / `opencode-go-usage`** —— 目录里有 `AGENT-INSTALL.md`，一句话就够：
-  > 按 `AGENT-INSTALL.md` 把 `model-audit` 装上并验收。
+- **装的是三个 agnes 插件之一** —— 它们要 API key：说明书 §2.2 会让 agent **停下来问你要 key**
+  （agent 不索取、不代填明文，由你自己写进 `<HERMES_HOME>/.env`；只用一家站点时另一把留空即可）。
+- **想让它顺手连重启一起做** —— 模型 provider 与图像 / 视频后端都是**每进程只发现一次**，
+  所以补一句「装完把承载进程重启掉」（桌面端 App / `hermes dashboard` / `gateway run`）。
 
-  （它会自己走前置核对 → 安装 → 验收阶梯，不需要你补其他信息。）
-
-- **三个 agnes 插件（`model-providers/agnes`、`image_gen/agnes-image`、`video_gen/agnes-video`）** ——
-  **没有说明书**，要把四件事一次说全：
-  > 装 `linkaixiang4883/hermes-plugins/model-providers/agnes`（国际站 + 国内站两个 provider）；
-  > 在 `hermes .env` 里填 `AGNES_API_KEY` 和 `AGNES_CN_API_KEY`（只用一家可留空另一把）；
-  > 重启后确认 `hermes plugins list` 里是 enabled；然后告诉我 `hermes model` 里能看到 `agnes` 与 `agnes-cn`。
-
-  图像 / 视频那两个把路径换成 `image_gen/agnes-image`、`video_gen/agnes-video`，
-  并把最后一句换成「`config.yaml` 里 `image_gen.provider` / `video_gen.provider` 要指向哪个 id」。
+不确定插件名？照着上面的插件表念目录名即可，例如
+「按 `model-providers/agnes/AGENT-INSTALL.md` 把 agnes 装上并验收」。
 
 ## 更新 / 卸载
 
