@@ -1,5 +1,5 @@
 name: agnes-cn-image
-version: 1.3.1
+version: 1.3.2
 description: "Agnes AI CN image generation backend (domestic endpoint api.agnes-ai.cn, model agnes-image-2.x-flash). Text-to-image, image-to-image, and multi-image composition. OpenAI-compatible /v1/images/generations endpoint."
 author: user
 kind: backend

@@ -1,6 +1,7 @@
 """Agnes AI CN image generation backend (domestic endpoint api.agnes-ai.cn).
 
-Exposes the ``agnes-image-2.0-flash`` model via Agnes AI's OpenAI-compatible
+Exposes ``agnes-image-2.5-flash`` (default) / ``2.1-flash`` / ``2.0-flash``
+via Agnes AI's OpenAI-compatible
 ``/v1/images/generations`` endpoint. Supports:
 
 - **Text-to-image**: prompt only, returns generated image
@@ -74,12 +75,6 @@ def _to_data_uri_or_url(value: str) -> str:
 API_BASE = "https://api.agnes-ai.cn/v1"
 
 _MODELS: Dict[str, Dict[str, Any]] = {
-    "agnes-image-2.0-flash": {
-        "display": "Agnes Image 2.0 Flash",
-        "speed": "~5-15s",
-        "strengths": "Text-to-image, image editing, multi-image composition",
-        "price": "free (current promotion)",
-    },
     "agnes-image-2.1-flash": {
         "display": "Agnes Image 2.1 Flash",
         "speed": "~5-15s",
@@ -104,7 +99,7 @@ _SIZES = {
 
 
 class AgnesCNImageGenProvider(ImageGenProvider):
-    """Agnes AI CN image generation backend — agnes-image-2.0-flash (domestic)."""
+    """Agnes AI CN image generation backend — agnes-image-2.5-flash / 2.1-flash (domestic)."""
 
     @property
     def name(self) -> str:

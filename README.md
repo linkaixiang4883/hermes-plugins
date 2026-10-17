@@ -17,10 +17,10 @@
 |---|---|---|---|---|
 | [`model-providers/agnes`](model-providers/agnes/) | `agnes` | Agnes AI 国际站（apihub.agnes-ai.com）模型提供方 | `model-provider` | `1.0.3` |
 | [`model-providers/agnes-cn`](model-providers/agnes-cn/) | `agnes-cn` | Agnes AI 国内站（api.agnes-ai.cn）模型提供方 | `model-provider` | `1.3.3` |
-| [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` | 国际站图像生成后端 | `backend` | `1.1.1` |
-| [`image_gen/agnes-cn-image`](image_gen/agnes-cn-image/) | `agnes-cn-image` | 国内站图像生成后端 | `backend` | `1.3.1` |
-| [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` | 国际站视频生成后端 | `backend` | `1.2.1` |
-| [`video_gen/agnes-cn-video`](video_gen/agnes-cn-video/) | `agnes-cn-video` | 国内站视频生成后端 | `backend` | `1.4.1` |
+| [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` | 国际站图像生成后端 | `backend` | `1.1.2` |
+| [`image_gen/agnes-cn-image`](image_gen/agnes-cn-image/) | `agnes-cn-image` | 国内站图像生成后端 | `backend` | `1.3.2` |
+| [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` | 国际站视频生成后端 | `backend` | `1.2.2` |
+| [`video_gen/agnes-cn-video`](video_gen/agnes-cn-video/) | `agnes-cn-video` | 国内站视频生成后端 | `backend` | `1.4.2` |
 
 它们在仓库里位于**分类子目录**下（`model-providers/`、`image_gen/`、`video_gen/`），安装时把整套相对路径写进
 `owner/repo/` 后面即可：

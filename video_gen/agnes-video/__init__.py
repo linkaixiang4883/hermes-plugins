@@ -1,6 +1,7 @@
 """Agnes AI Intl video generation backend (international endpoint apihub.agnes-ai.com).
 
-Exposes the ``agnes-video-v2.0`` model via Agnes AI's async task API.
+Exposes ``agnes-video-2.5`` / ``agnes-video-2.5-flash`` (default) via Agnes AI's async
+task API (OpenAI Videos-compatible: ``POST /v1/videos`` + ``GET /agnesapi``).
 Supports:
 
 - **Text-to-video**: generate video from text prompt
@@ -75,9 +76,7 @@ def _to_data_uri_or_url(value: str) -> str:
 
 API_BASE = "https://apihub.agnes-ai.com/v1"
 API_MODEL = "agnes-video-2.5-flash"
-# 旧版兼容
 API_MODELS = {
-    "agnes-video-v2.0": {"display": "Agnes Video V2.0", "price": "free"},
     "agnes-video-2.5": {"display": "Agnes Video 2.5", "price": "free"},
     "agnes-video-2.5-flash": {"display": "Agnes Video 2.5 Flash", "price": "free (latest)"},
 }
@@ -96,7 +95,7 @@ _ASPECT_MAP = {
 
 
 class AgnesVideoGenProvider(VideoGenProvider):
-    """Agnes AI Intl video generation backend — agnes-video-v2.0 (international)."""
+    """Agnes AI Intl video generation backend — agnes-video-2.5 / 2.5-flash (international)."""
 
     @property
     def name(self) -> str:

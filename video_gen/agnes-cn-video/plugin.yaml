@@ -1,5 +1,5 @@
 name: agnes-cn-video
-version: 1.4.1
+version: 1.4.2
 description: "Agnes AI CN video generation backend (domestic endpoint api.agnes-ai.cn, model agnes-video-v2.0). Text-to-video, image-to-video, and keyframe animation via async task API. Polls for completion and returns cached video file."
 author: user
 kind: backend

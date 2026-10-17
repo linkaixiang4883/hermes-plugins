@@ -1,6 +1,7 @@
 """Agnes AI Intl image generation backend (international endpoint apihub.agnes-ai.com).
 
-Exposes the ``agnes-image-2.0-flash`` model via Agnes AI's OpenAI-compatible
+Exposes ``agnes-image-2.5-flash`` (default) / ``2.1-flash`` / ``2.0-flash``
+via Agnes AI's OpenAI-compatible
 ``/v1/images/generations`` endpoint. Supports:
 
 - **Text-to-image**: prompt only, returns generated image
@@ -104,7 +105,7 @@ _SIZES = {
 
 
 class AgnesImageGenProvider(ImageGenProvider):
-    """Agnes AI Intl image generation backend — agnes-image-2.0-flash (international)."""
+    """Agnes AI Intl image generation backend — agnes-image-2.5-flash (default) / 2.1-flash / 2.0-flash (international)."""
 
     @property
     def name(self) -> str:

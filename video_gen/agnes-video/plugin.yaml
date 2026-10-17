@@ -1,5 +1,5 @@
 name: agnes-video
-version: 1.2.1
+version: 1.2.2
 description: "Agnes AI Intl video generation backend (international endpoint apihub.agnes-ai.com, model agnes-video-v2.0). Text-to-video, image-to-video, and keyframe animation via async task API. Polls for completion and returns cached video file."
 author: user
 kind: backend

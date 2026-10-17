@@ -1,5 +1,5 @@
 name: agnes-image
-version: 1.1.1
+version: 1.1.2
 description: "Agnes AI Intl image generation backend (international endpoint apihub.agnes-ai.com, model agnes-image-2.x-flash). Text-to-image, image-to-image, and multi-image composition. OpenAI-compatible /v1/images/generations endpoint."
 author: user
 kind: backend
