@@ -1,6 +1,6 @@
 name: agnes-cn
 kind: model-provider
-version: 1.3.2
+version: 1.3.3
 description: "Agnes AI CN domestic endpoint (Sapiens AI) — agnes-3.0-flash & agnes-2.5-flash & agnes-2.0-flash, 512K context, OpenAI-compatible. Supports vision, tool calling, and thinking mode. Currently free."
 author: user
 # 依赖面实测（2026-10-17）：providers.register_provider / providers.base.ProviderProfile

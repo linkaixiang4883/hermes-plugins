@@ -15,8 +15,8 @@
 
 | 目录 | 插件 | 作用 | `kind` | 版本 |
 |---|---|---|---|---|
-| [`model-providers/agnes`](model-providers/agnes/) | `agnes` | Agnes AI 国际站（apihub.agnes-ai.com）模型提供方 | `model-provider` | `1.0.2` |
-| [`model-providers/agnes-cn`](model-providers/agnes-cn/) | `agnes-cn` | Agnes AI 国内站（api.agnes-ai.cn）模型提供方 | `model-provider` | `1.3.2` |
+| [`model-providers/agnes`](model-providers/agnes/) | `agnes` | Agnes AI 国际站（apihub.agnes-ai.com）模型提供方 | `model-provider` | `1.0.3` |
+| [`model-providers/agnes-cn`](model-providers/agnes-cn/) | `agnes-cn` | Agnes AI 国内站（api.agnes-ai.cn）模型提供方 | `model-provider` | `1.3.3` |
 | [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` | 国际站图像生成后端 | `backend` | `1.1.1` |
 | [`image_gen/agnes-cn-image`](image_gen/agnes-cn-image/) | `agnes-cn-image` | 国内站图像生成后端 | `backend` | `1.3.1` |
 | [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` | 国际站视频生成后端 | `backend` | `1.2.1` |

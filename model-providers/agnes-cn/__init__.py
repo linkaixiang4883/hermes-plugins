@@ -102,18 +102,37 @@ agnes_cn = AgnesCNProfile(
     name="agnes-cn",
     aliases=("agnes-ai", "agnes_ai", "sapiens"),
     display_name="Agnes AI (CN)",
-    description="Agnes AI CN domestic endpoint (Sapiens AI) — agnes-3.0-flash & agnes-2.5-flash & agnes-2.0-flash, 512K context, vision & thinking, currently free",
+    description="Agnes AI CN domestic endpoint (Sapiens AI) — agnes-3.0-flash / agnes-2.5-flash (512K ctx, 免费) + agnes-2.5-pro (1M ctx, reasoning)；vision & tools",
     signup_url="https://platform.agnes-ai.cn/",
     env_vars=("AGNES_CN_API_KEY",),
     base_url="https://api.agnes-ai.cn/v1",
     auth_type="api_key",
     supports_vision=True,
     supports_health_check=True,
+    # 官方定价页/模型页在售清单（agnes-ai.com/zh-Hans/docs/pricing）。
+    # ⚠️ agnes-2.0-flash 已废弃，文档明确写"请勿继续作为兼容回退"，故移除。
     fallback_models=(
         "agnes-3.0-flash",
         "agnes-2.5-flash",
-        "agnes-2.0-flash",
+        "agnes-2.5-pro",
+        "agnes-2.5-pro-beta",
+        "agnes-3.0-pro",
     ),
+    # 上下文窗口/能力的**正式声明面**：models_dev 按精确模型读取
+    # （precedence = 用户 model_overrides → 本声明 → models.dev 目录 → 兜底）。
+    # 不声明就会掉回目录/兜底（200k）—— 这就是"上下文被当成 200k"的根因。
+    # 数值来源：官方模型页（agnes-30-flash / agnes-25-flash / agnes-25-pro）。
+    model_capabilities={
+        "agnes-3.0-flash": {"context_window": 512_000, "supports_vision": True, "supports_tools": True},
+        "agnes-2.5-flash": {"context_window": 512_000, "supports_vision": True, "supports_tools": True},
+        "agnes-2.5-pro": {
+            "context_window": 1_000_000, "supports_vision": True, "supports_tools": True,
+            "supports_reasoning": True,
+        },
+        # 以下两个上下文窗口官方未文档化 → 只声明能力，context 留空（= 未知，不猜）
+        "agnes-2.5-pro-beta": {"supports_vision": True, "supports_tools": True, "supports_reasoning": True},
+        "agnes-3.0-pro": {"supports_vision": True, "supports_tools": True, "supports_reasoning": True},
+    },
 )
 
 register_provider(agnes_cn)
@@ -129,7 +148,7 @@ try:
     _AGNES_CONTEXT_LENGTHS = {
         "agnes-3.0-flash":  512_000,
         "agnes-2.5-flash":  512_000,
-        "agnes-2.0-flash":  512_000,
+        "agnes-2.5-pro":    1_000_000,
     }
     for _model_id, _ctx_len in _AGNES_CONTEXT_LENGTHS.items():
         save_context_length(_model_id, _AGNES_BASE_URL, _ctx_len)
