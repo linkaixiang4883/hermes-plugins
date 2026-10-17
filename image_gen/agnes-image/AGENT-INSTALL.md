@@ -58,6 +58,9 @@ HH="$(dirname "$(hermes config path)")" && echo "$HH"
 | `agnes-image` | 国际站 apihub.agnes-ai.com | `AGNES_API_KEY` | https://agnes-ai.com/ |
 | `agnes-cn-image` | 国内站 api.agnes-ai.cn | `AGNES_CN_API_KEY` | https://platform.agnes-ai.cn/ |
 
+**key 放哪（本插件已实测）**：本插件是**生成后端**，provider id（`agnes-image` / `agnes-cn-image`）**不在** Hermes 的凭据注册表里 —— 实测 `hermes auth add agnes-image` 直接回 `Unknown provider`。
+所以 key **只能写 `$HH/.env`**（本节做法），不能用 `hermes auth` 管。
+
 用户把 key 填进 `$HH/.env`（§3.3 给命令）。**agent 只负责写占位行 / 检查是否已存在，不要索取 key 明文**。
 
 ## 3. 安装（标准 Git 安装：一条命令；手工复制作兜底）

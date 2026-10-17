@@ -93,6 +93,12 @@ hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-video --en
 
 1. **填 API key**：在 `<HERMES_HOME>/.env` 里写 `AGNES_API_KEY=`（国际站）和 `AGNES_CN_API_KEY=`（国内站）。
    **只用一家时另一把留空即可**（交互式安装会主动提示这两个变量，直接回车可跳过）。
+
+   > **两半的取 key 方式不同（2026-10-17 实测）**：
+   > **模型 provider**（`agnes` / `agnes-cn`）在 Hermes 的凭据注册表里（`hermes auth list` 能看到它们，
+   > 连别名 `agnes-ai` / `agnes_ai` 都有行），所以 **`.env` 和 `hermes auth add agnes --api-key <key>` 两种都行**；
+   > **图像 / 视频后端**（`agnes-image` / `agnes-cn-image` / `agnes-video` / `agnes-cn-video`）**不在**注册表里
+   > —— `hermes auth add agnes-image` 会直接回 `Unknown provider`，所以后端**只能写 `.env`**。
 2. **重启承载进程**（桌面端 App / `hermes dashboard` / `gateway run`）。
 
 **让 Hermes 用上它们**：模型 provider 在 `hermes model` 里选 `agnes`（国际站）或 `agnes-cn`（国内站）；
@@ -188,7 +194,9 @@ hermes plugins remove <插件名>       # 连目录一起删
   `<HERMES_HOME>/plugin-data/model-audit/`（SQLite），**不含消息正文**；它完全不碰任何 key。
 - **凭据**：`opencode-go-usage` 读 Hermes 自己的凭证存储（`auth.json` 的凭证池 + `.env`），
   用来判断「当前在用哪把 key」，并只把它发给对应厂商的用量端点；key 不打印、不落盘、不进日志。
-  三个 agnes 插件只从环境变量读各自的 key（`AGNES_API_KEY` / `AGNES_CN_API_KEY`）。
+  `agnes` / `agnes-cn`（模型 provider）的 key 由 Hermes **框架**统一解析（凭据池 + 环境变量，插件本身不碰 key）；
+  `agnes-image` / `agnes-video`（生成后端）**只从环境变量读**各自的 key（`AGNES_API_KEY` / `AGNES_CN_API_KEY`）
+  —— 后端 provider 不在凭据注册表里，`hermes auth` 管不了它们。
 - 都不修改 Hermes 源码文件：`model-audit` 只在运行时**内存里**包一层 **fail-open** 的采集钩子
   （装不上就降级为「无信号」，不影响正常使用）。
 

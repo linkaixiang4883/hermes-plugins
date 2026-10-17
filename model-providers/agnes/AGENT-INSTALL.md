@@ -59,6 +59,10 @@ HH="$(dirname "$(hermes config path)")" && echo "$HH"
 | `agnes` | 国际站 apihub.agnes-ai.com | `AGNES_API_KEY` | https://agnes-ai.com/ |
 | `agnes-cn` | 国内站 api.agnes-ai.cn | `AGNES_CN_API_KEY` | https://platform.agnes-ai.cn/ |
 
+**key 放哪（本插件已实测）**：本插件是**模型 provider**，provider 名（含别名）**在 Hermes 的凭据注册表里**（`hermes auth list` 能看到 `agnes` / `agnes-cn`）。所以两处都行：
+① 写 `$HH/.env`（本节做法）；② `hermes auth add agnes --api-key <key>` 交给凭据池管。
+两种都会被框架采用 —— 池里那两条凭据的来源就是 `env:AGNES_API_KEY` / `env:AGNES_CN_API_KEY`。
+
 用户把 key 填进 `$HH/.env`（§3.3 给命令）。**agent 只负责写占位行 / 检查是否已存在，不要索取 key 明文**。
 
 ## 3. 安装（标准 Git 安装：一条命令；手工复制作兜底）
