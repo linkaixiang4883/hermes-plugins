@@ -16,28 +16,30 @@
 | 目录 | 插件 | 作用 | `kind` | 版本 |
 |---|---|---|---|---|
 | [`model-providers/agnes`](model-providers/agnes/) | `agnes` + `agnes-cn` | Agnes AI 模型提供方 —— **一个插件两个 provider**（形态同内置 `opencode-zen`）：国际站（apihub.agnes-ai.com / `AGNES_API_KEY`）与国内站（api.agnes-ai.cn / `AGNES_CN_API_KEY`） | `model-provider` | `1.1.0` |
-| [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` | 国际站图像生成后端 | `backend` | `1.1.2` |
-| [`image_gen/agnes-cn-image`](image_gen/agnes-cn-image/) | `agnes-cn-image` | 国内站图像生成后端 | `backend` | `1.3.2` |
-| [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` | 国际站视频生成后端 | `backend` | `1.2.2` |
-| [`video_gen/agnes-cn-video`](video_gen/agnes-cn-video/) | `agnes-cn-video` | 国内站视频生成后端 | `backend` | `1.4.2` |
+| [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` + `agnes-cn-image` | 图像生成后端 —— **一个插件两个 provider**：国际站（`AGNES_API_KEY`，含 2.0-flash）与国内站（`AGNES_CN_API_KEY`，无 2.0-flash） | `backend` | `1.2.0` |
+| [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` + `agnes-cn-video` | 视频生成后端 —— **一个插件两个 provider**：国际站（`AGNES_API_KEY`）与国内站（`AGNES_CN_API_KEY`），模型集相同 | `backend` | `1.3.0` |
 
 它们在仓库里位于**分类子目录**下（`model-providers/`、`image_gen/`、`video_gen/`），安装时把整套相对路径写进
 `owner/repo/` 后面即可：
 
 ```bash
 hermes plugins install linkaixiang4883/hermes-plugins/model-providers/agnes --enable
-hermes plugins install linkaixiang4883/hermes-plugins/image_gen/agnes-cn-image --enable
-hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-cn-video --enable
+hermes plugins install linkaixiang4883/hermes-plugins/image_gen/agnes-image --enable
+hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-video --enable
 ```
 
-> `model-providers/agnes` 是**一个插件注册两个 provider**（`agnes` 国际站 + `agnes-cn` 国内站）——
-> Hermes 没有 variant / 子选择概念，所以选择器里它们是两个并列条目（这正是内置 `opencode-zen`
-> 呈现 zen / go 的方式）。`agnes-cn` 早先的独立插件（v1.3.3）已并入本插件，其 provider 名与别名
-> （`agnes-ai` / `sapiens`）保持不变，故旧配置与 `auth.json` 无需改动。
+> **三个 agnes 插件都是"一个插件注册两个 provider"**（国际站 + 国内站）—— Hermes 没有
+> variant / 子选择概念，所以选择器里它们各是两个**并列条目**（这正是内置 `opencode-zen` 呈现
+> zen / go 的方式）。原先独立的 `agnes-cn`（v1.3.3）、`agnes-cn-image`（v1.3.2）、
+> `agnes-cn-video`（v1.4.2）三个插件已分别并入上述三个插件。
+>
+> **provider 名 / env vars / base_url 全部未变**（如 `agnes-cn-image` 仍是独立的 provider id，
+> 由 `agnes-image` 插件注册），故旧配置、`image_gen.provider`、`auth.json` 都无需改动；
+> `plugins.enabled` 里的插件名也未变（仍是 `agnes` / `agnes-image` / `agnes-video`）。
 
-> 这 5 个的 `plugin.yaml` 同样声明 `requires_hermes: ">=0.21.6"`。
+> 这 3 个的 `plugin.yaml` 同样声明 `requires_hermes: ">=0.21.6"`。
 > 图像/视频后端的 provider 接口（`agents.image_gen_provider` / `agent.video_gen_provider`）在 v0.21.6 起稳定，
-> 四个后端已实现文档中的全部成员（含 `capabilities()`）。
+> 后端已实现文档中的全部成员（含 `capabilities()`）。
 
 **版本要求**：两个插件的 `plugin.yaml` 都声明了 `requires_hermes: ">=0.21.6"`。
 版本不满足时 Hermes 会**干净跳过**该插件、并在 `hermes plugins list` / `doctor` 里给出原因

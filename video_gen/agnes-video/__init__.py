@@ -1,4 +1,15 @@
-"""Agnes AI Intl video generation backend (international endpoint apihub.agnes-ai.com).
+"""Agnes AI video generation backends — 国际站 + 国内站，一个插件两个 provider。
+
+形态照 Hermes 内置 ``plugins/model-providers/opencode-zen``：一个文件注册两个 provider，
+选择器里就是两个**并列条目**（Hermes 没有 variant / 子选择概念）。
+
+    provider id        base_url                          env var
+    -----------------  --------------------------------  --------------------
+    ``agnes-video``    https://apihub.agnes-ai.com/v1     ``AGNES_API_KEY``
+    ``agnes-cn-video`` https://api.agnes-ai.cn/v1         ``AGNES_CN_API_KEY``
+
+两家模型集**完全相同**（agnes-video-2.5 / 2.5-flash），逻辑体一份共享；
+只有 base_url / key / 名称是区域相关的。
 
 Exposes ``agnes-video-2.5`` / ``agnes-video-2.5-flash`` (default) via Agnes AI's async
 task API (OpenAI Videos-compatible: ``POST /v1/videos`` + ``GET /agnesapi``).
@@ -74,7 +85,6 @@ def _to_data_uri_or_url(value: str) -> str:
         mime = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
     return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
-API_BASE = "https://apihub.agnes-ai.com/v1"
 API_MODEL = "agnes-video-2.5-flash"
 API_MODELS = {
     "agnes-video-2.5": {"display": "Agnes Video 2.5", "price": "free"},
@@ -95,18 +105,36 @@ _ASPECT_MAP = {
 
 
 class AgnesVideoGenProvider(VideoGenProvider):
-    """Agnes AI Intl video generation backend — agnes-video-2.5 / 2.5-flash (international)."""
+    """Agnes AI 视频生成后端基类 —— 区域差异全在下面这几个类常量里。
+
+    子类只需覆盖：PROVIDER_NAME / DISPLAY_NAME / ENV_VAR / KEY_PROMPT /
+    SIGNUP_URL / API_BASE。模型集两家相同，故 API_MODEL / API_MODELS 是模块级共享常量；
+    其余逻辑（含 generate() 的建任务 + 轮询）一份共享。
+    """
+
+    # ── 子类必须覆盖的区域参数 ──
+    PROVIDER_NAME: str = ""
+    DISPLAY_NAME: str = ""
+    ENV_VAR: str = ""
+    KEY_PROMPT: str = ""
+    SIGNUP_URL: str = ""
+    API_BASE: str = ""
 
     @property
     def name(self) -> str:
-        return "agnes-video"
+        return self.PROVIDER_NAME
 
     @property
     def display_name(self) -> str:
-        return "Agnes AI (Intl)"
+        return self.DISPLAY_NAME
+
+    @property
+    def agnesapi_url(self) -> str:
+        """轮询地址：``/agnesapi`` 挂在站点根下，**不在** ``/v1`` 下（故由 API_BASE 派生）。"""
+        return self.API_BASE.removesuffix("/v1") + "/agnesapi"
 
     def is_available(self) -> bool:
-        return bool(os.environ.get("AGNES_API_KEY"))
+        return bool(os.environ.get(self.ENV_VAR))
 
     def list_models(self) -> List[Dict[str, Any]]:
         return [
@@ -119,14 +147,14 @@ class AgnesVideoGenProvider(VideoGenProvider):
 
     def get_setup_schema(self) -> Dict[str, Any]:
         return {
-            "name": "Agnes AI (Intl)",
+            "name": self.DISPLAY_NAME,
             "badge": "free",
             "tag": "agnes-video-2.5-flash — text-to-video & image-to-video (free, latest)",
             "env_vars": [
                 {
-                    "key": "AGNES_API_KEY",
-                    "prompt": "Agnes AI Intl API key",
-                    "url": "https://agnes-ai.com/",
+                    "key": self.ENV_VAR,
+                    "prompt": self.KEY_PROMPT,
+                    "url": self.SIGNUP_URL,
                 },
             ],
         }
@@ -162,10 +190,10 @@ class AgnesVideoGenProvider(VideoGenProvider):
                 provider=self.name,
             )
 
-        api_key = os.environ.get("AGNES_API_KEY")
+        api_key = os.environ.get(self.ENV_VAR)
         if not api_key:
             return error_response(
-                error="AGNES_API_KEY not set. Get your key at https://agnes-ai.com/",
+                error=f"{self.ENV_VAR} not set. Get your key at {self.SIGNUP_URL}",
                 error_type="auth_required",
                 provider=self.name,
             )
@@ -238,7 +266,7 @@ class AgnesVideoGenProvider(VideoGenProvider):
         # Step 1: Create video task
         try:
             resp = requests.post(
-                f"{API_BASE}/videos",
+                f"{self.API_BASE}/videos",
                 headers=headers,
                 json=body,
                 timeout=60,
@@ -295,7 +323,7 @@ class AgnesVideoGenProvider(VideoGenProvider):
 
             try:
                 poll_resp = requests.get(
-                    f"https://apihub.agnes-ai.com/agnesapi",
+                    self.agnesapi_url,
                     params={"video_id": video_id, "model_name": model_id},
                     headers={"Authorization": f"Bearer {api_key}"},
                     timeout=30,
@@ -374,6 +402,29 @@ class AgnesVideoGenProvider(VideoGenProvider):
         )
 
 
+class AgnesIntlVideoProvider(AgnesVideoGenProvider):
+    """国际站（apihub.agnes-ai.com）—— agnes-video-2.5 / 2.5-flash(默认)。"""
+
+    PROVIDER_NAME = "agnes-video"
+    DISPLAY_NAME = "Agnes AI (Intl)"
+    ENV_VAR = "AGNES_API_KEY"
+    KEY_PROMPT = "Agnes AI Intl API key"
+    SIGNUP_URL = "https://agnes-ai.com/"
+    API_BASE = "https://apihub.agnes-ai.com/v1"
+
+
+class AgnesCNVideoProvider(AgnesVideoGenProvider):
+    """国内站（api.agnes-ai.cn）—— agnes-video-2.5 / 2.5-flash(默认)。"""
+
+    PROVIDER_NAME = "agnes-cn-video"
+    DISPLAY_NAME = "Agnes AI (CN)"
+    ENV_VAR = "AGNES_CN_API_KEY"
+    KEY_PROMPT = "Agnes AI CN API key (domestic)"
+    SIGNUP_URL = "https://platform.agnes-ai.cn/"
+    API_BASE = "https://api.agnes-ai.cn/v1"
+
+
 def register(ctx) -> None:
-    """Plugin entry point — wire AgnesVideoGenProvider into the registry."""
-    ctx.register_video_gen_provider(AgnesVideoGenProvider())
+    """Plugin entry point — 一次注册两个 provider（国际站 + 国内站）。"""
+    ctx.register_video_gen_provider(AgnesIntlVideoProvider())
+    ctx.register_video_gen_provider(AgnesCNVideoProvider())

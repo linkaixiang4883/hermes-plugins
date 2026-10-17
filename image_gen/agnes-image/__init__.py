@@ -1,6 +1,16 @@
-"""Agnes AI Intl image generation backend (international endpoint apihub.agnes-ai.com).
+"""Agnes AI image generation backends — 国际站 + 国内站，一个插件两个 provider。
 
-Exposes ``agnes-image-2.5-flash`` (default) / ``2.1-flash`` / ``2.0-flash``
+形态照 Hermes 内置 ``plugins/model-providers/opencode-zen``：一个文件注册两个 provider，
+选择器里就是两个**并列条目**（Hermes 没有 variant / 子选择概念）。
+
+    provider id        base_url                          env var
+    -----------------  --------------------------------  --------------------
+    ``agnes-image``    https://apihub.agnes-ai.com/v1     ``AGNES_API_KEY``
+    ``agnes-cn-image`` https://api.agnes-ai.cn/v1         ``AGNES_CN_API_KEY``
+
+两家逻辑体完全相同，只有 base_url / key / 名称 / 在售模型集不同（国际站另有 2.0-flash）。
+
+Exposes ``agnes-image-2.5-flash`` (default) / ``2.1-flash``
 via Agnes AI's OpenAI-compatible
 ``/v1/images/generations`` endpoint. Supports:
 
@@ -72,9 +82,7 @@ def _to_data_uri_or_url(value: str) -> str:
         mime = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
     return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
-API_BASE = "https://apihub.agnes-ai.com/v1"
-
-_MODELS: Dict[str, Dict[str, Any]] = {
+_MODELS_INTL: Dict[str, Dict[str, Any]] = {
     "agnes-image-2.0-flash": {
         "display": "Agnes Image 2.0 Flash",
         "speed": "~5-15s",
@@ -97,6 +105,23 @@ _MODELS: Dict[str, Dict[str, Any]] = {
 
 DEFAULT_MODEL = "agnes-image-2.5-flash"
 
+# 国内站（api.agnes-ai.cn）的 /v1/models 只列 2.1-flash 与 2.5-flash，**没有 2.0-flash**。
+# 国际站保留 2.0-flash（其 /v1/models 仍返回，定价页在售）。
+_MODELS_CN: Dict[str, Dict[str, Any]] = {
+    "agnes-image-2.1-flash": {
+        "display": "Agnes Image 2.1 Flash",
+        "speed": "~5-15s",
+        "strengths": "Newer image model — improved quality",
+        "price": "free (current promotion)",
+    },
+    "agnes-image-2.5-flash": {
+        "display": "Agnes Image 2.5 Flash",
+        "speed": "~5-10s",
+        "strengths": "Latest — comprehensively exceeds 2.1, high-density visuals, text/image/multi-image",
+        "price": "free (current promotion)",
+    },
+}
+
 _SIZES = {
     "landscape": "1024x768",
     "square": "1024x1024",
@@ -105,18 +130,31 @@ _SIZES = {
 
 
 class AgnesImageGenProvider(ImageGenProvider):
-    """Agnes AI Intl image generation backend — agnes-image-2.5-flash (default) / 2.1-flash / 2.0-flash (international)."""
+    """Agnes AI 图像生成后端基类 —— 区域差异全在下面这几个类常量里。
+
+    子类只需覆盖：PROVIDER_NAME / DISPLAY_NAME / ENV_VAR / KEY_PROMPT /
+    SIGNUP_URL / API_BASE / MODELS。其余逻辑（含 generate()）一份共享。
+    """
+
+    # ── 子类必须覆盖的区域参数 ──
+    PROVIDER_NAME: str = ""
+    DISPLAY_NAME: str = ""
+    ENV_VAR: str = ""
+    KEY_PROMPT: str = ""
+    SIGNUP_URL: str = ""
+    API_BASE: str = ""
+    MODELS: Dict[str, Dict[str, Any]] = {}
 
     @property
     def name(self) -> str:
-        return "agnes-image"
+        return self.PROVIDER_NAME
 
     @property
     def display_name(self) -> str:
-        return "Agnes AI (Intl)"
+        return self.DISPLAY_NAME
 
     def is_available(self) -> bool:
-        return bool(os.environ.get("AGNES_API_KEY"))
+        return bool(os.environ.get(self.ENV_VAR))
 
     def list_models(self) -> List[Dict[str, Any]]:
         return [
@@ -127,7 +165,7 @@ class AgnesImageGenProvider(ImageGenProvider):
                 "strengths": meta["strengths"],
                 "price": meta["price"],
             }
-            for model_id, meta in _MODELS.items()
+            for model_id, meta in self.MODELS.items()
         ]
 
     def default_model(self) -> Optional[str]:
@@ -135,14 +173,14 @@ class AgnesImageGenProvider(ImageGenProvider):
 
     def get_setup_schema(self) -> Dict[str, Any]:
         return {
-            "name": "Agnes AI (Intl)",
+            "name": self.DISPLAY_NAME,
             "badge": "free",
             "tag": "agnes-image-2.5-flash — text-to-image & image editing (free, latest)",
             "env_vars": [
                 {
-                    "key": "AGNES_API_KEY",
-                    "prompt": "Agnes AI Intl API key",
-                    "url": "https://agnes-ai.com/",
+                    "key": self.ENV_VAR,
+                    "prompt": self.KEY_PROMPT,
+                    "url": self.SIGNUP_URL,
                 },
             ],
         }
@@ -170,10 +208,10 @@ class AgnesImageGenProvider(ImageGenProvider):
                 aspect_ratio=aspect,
             )
 
-        api_key = os.environ.get("AGNES_API_KEY")
+        api_key = os.environ.get(self.ENV_VAR)
         if not api_key:
             return error_response(
-                error="AGNES_API_KEY not set. Get your key at https://agnes-ai.com/",
+                error=f"{self.ENV_VAR} not set. Get your key at {self.SIGNUP_URL}",
                 error_type="auth_required",
                 provider=self.name,
                 aspect_ratio=aspect,
@@ -183,7 +221,7 @@ class AgnesImageGenProvider(ImageGenProvider):
 
         # Resolve which model to use (from kwargs or default)
         model_id = kwargs.get("model") or DEFAULT_MODEL
-        if model_id not in _MODELS:
+        if model_id not in self.MODELS:
             model_id = DEFAULT_MODEL
 
         # Collect source images for image-to-image / multi-image composition.
@@ -228,7 +266,7 @@ class AgnesImageGenProvider(ImageGenProvider):
 
         try:
             resp = requests.post(
-                f"{API_BASE}/images/generations",
+                f"{self.API_BASE}/images/generations",
                 headers=headers,
                 json=body,
                 timeout=120,
@@ -319,6 +357,31 @@ class AgnesImageGenProvider(ImageGenProvider):
         )
 
 
+class AgnesIntlImageProvider(AgnesImageGenProvider):
+    """国际站（apihub.agnes-ai.com）—— agnes-image-2.5-flash(默认) / 2.1-flash / 2.0-flash。"""
+
+    PROVIDER_NAME = "agnes-image"
+    DISPLAY_NAME = "Agnes AI (Intl)"
+    ENV_VAR = "AGNES_API_KEY"
+    KEY_PROMPT = "Agnes AI Intl API key"
+    SIGNUP_URL = "https://agnes-ai.com/"
+    API_BASE = "https://apihub.agnes-ai.com/v1"
+    MODELS = _MODELS_INTL
+
+
+class AgnesCNImageProvider(AgnesImageGenProvider):
+    """国内站（api.agnes-ai.cn）—— agnes-image-2.5-flash(默认) / 2.1-flash（无 2.0-flash）。"""
+
+    PROVIDER_NAME = "agnes-cn-image"
+    DISPLAY_NAME = "Agnes AI (CN)"
+    ENV_VAR = "AGNES_CN_API_KEY"
+    KEY_PROMPT = "Agnes AI CN API key (domestic)"
+    SIGNUP_URL = "https://platform.agnes-ai.cn/"
+    API_BASE = "https://api.agnes-ai.cn/v1"
+    MODELS = _MODELS_CN
+
+
 def register(ctx) -> None:
-    """Plugin entry point — wire AgnesImageGenProvider into the registry."""
-    ctx.register_image_gen_provider(AgnesImageGenProvider())
+    """Plugin entry point — 一次注册两个 provider（国际站 + 国内站）。"""
+    ctx.register_image_gen_provider(AgnesIntlImageProvider())
+    ctx.register_image_gen_provider(AgnesCNImageProvider())
