@@ -1,0 +1,10 @@
+name: opencode-go-usage
+version: 1.2.1
+description: "编码套餐用量（OpenCode Go / Command Code GOAT）：桌面状态栏芯片（模型门控——仅在使用本站套餐模型时显示，Zen/其他 provider 自动隐藏）+ 只读后端（按套餐注册表选家，多 key 跟随 Hermes 凭证池轮换）。"
+author: user
+kind: standalone
+# 依赖面实测（2026-10-17）：credential_pool 的两个 TTL 常量、config.get_hermes_home/load_config、
+# 桌面 SDK 的 STATUSBAR_AREAS / ctx.rest / usePluginI18n / focusedStoredSessionId 在 v0.21.6 上
+# 全部存在（且代码里都带 try/except + 默认值兜底）。声明后由 Hermes 硬门拦截：不匹配则「干净跳过」
+# 并给出原因。全量端到端实测版本：v0.22.2。
+requires_hermes: ">=0.21.6"

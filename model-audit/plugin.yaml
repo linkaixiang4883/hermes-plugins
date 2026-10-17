@@ -1,0 +1,12 @@
+name: model-audit
+version: 0.4.1
+description: "模型对账：逐次记录请求 alias 与上游实际返回的 model / 路由端点；dashboard 页面比对 + 认可绿标 + 手动清理（防上游掉包）。结构性无自证的 provider（如 commandcode）单列「◌ 无自证」，可追溯 trace id。"
+author: user
+kind: standalone
+provides_hooks:
+  - post_api_request
+# 依赖面实测（2026-10-17）：install_served_model_capture / get_process_hermes_home /
+# first_chunk_at 三个符号在 v0.21.6 上逐一存在性验证通过 —— 它是本仓库最早的正式 release tag
+# （v0.21.3/4/5 从未正式发布）。声明后由 Hermes 硬门拦截：不匹配则「干净跳过」并给出原因，
+# 而不是装上后一片「无信号」。全量端到端实测版本：v0.22.2。
+requires_hermes: ">=0.21.6"

@@ -1,0 +1,10 @@
+{
+  "name": "model-audit",
+  "label": "Model Audit",
+  "description": "模型对账：请求 alias vs 上游实际返回的 model / 路由端点（含认可管理）",
+  "icon": "Shield",
+  "version": "0.4.1",
+  "tab": { "path": "/model-audit", "position": "after:analytics" },
+  "entry": "dist/index.js",
+  "api": "plugin_api.py"
+}

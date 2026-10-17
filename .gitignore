@@ -1,0 +1,30 @@
+# ── 白名单式：顶层默认全部忽略，只放行下面列出的插件目录 ─────────────────
+# 用 /*（只在顶层匹配），**不要**写成 *：后者会连目录内部的文件名一起匹配，
+# 那样就得再为每个子目录补一行 !目录/** 才能放行 —— 见 gitignore 的
+# "不能重新包含一个父目录已被排除的文件" 规则。
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+
+!/model-audit/
+!/opencode-go-usage/
+
+# ↓ 以后要发布更多插件，在这里加一行即可（加完 git add 再提交）
+# !/image_gen/
+# !/video_gen/
+# !/model-providers/
+
+# ── 目录内部的「运行期产物」必须单独排掉（白名单只管目录进不进）──────────
+__pycache__/
+**/__pycache__/
+*.pyc
+**/data/
+*.migrated
+*.migrated-shm
+*.migrated-wal
+
+# ── 以下不是我们的东西，/* 已覆盖，列出仅为说明 ────────────────────────
+# hermes-achievements/      Hermes 自带的 bundled 插件（这里是它的运行时状态）
+# homeassistant/            catalog 官方插件
+# .install-metadata.json*   catalog 安装器写的来源记录（仓库不能伪造）

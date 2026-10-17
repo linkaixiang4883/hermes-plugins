@@ -1,0 +1,9 @@
+{
+  "name": "opencode-go-usage",
+  "label": "Coding Plan Usage (Go / GOAT)",
+  "description": "Model-gated desktop status-bar chip for coding-plan usage: OpenCode Go (/zen/go/v1/usage) and Command Code GOAT (/alpha/billing/credits + /alpha/billing/subscriptions); hidden on Zen or other providers.",
+  "version": "1.2.1",
+  "tab": { "hidden": true },
+  "entry": "dist/index.js",
+  "api": "plugin_api.py"
+}
