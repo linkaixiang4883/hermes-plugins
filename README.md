@@ -101,15 +101,16 @@ hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-video --en
    > —— `hermes auth add agnes-image` 会直接回 `Unknown provider`，所以后端**只能写 `.env`**。
 2. **重启承载进程**（桌面端 App / `hermes dashboard` / `gateway run`）。
 
-**让 Hermes 用上它们**：模型 provider 在 `hermes model` 里选 `agnes`（国际站）或 `agnes-cn`（国内站）；
-图像 / 视频后端在 `config.yaml` 里指定 provider id：
+**让 Hermes 用上它们** —— 每种都有**四条等价的路**（改的是同一个配置键，选哪条都行）：
 
-```yaml
-image_gen:
-  provider: agnes-image        # 或 agnes-cn-image
-video_gen:
-  provider: agnes-video        # 或 agnes-cn-video
-```
+| 要选的 | ① 命令行 | ② Dashboard | ③ 桌面端 App | ④ 直接改 config |
+|---|---|---|---|---|
+| **模型 provider**<br>`model.provider` | `hermes model` → 选 `agnes`（国际站）或 `agnes-cn`（国内站） | **Models 页** | 模型选择器 | 写 `model.provider: agnes` |
+| **图像后端**<br>`image_gen.provider` | `hermes tools`（不带子命令=交互式 UI）→「🎨 Image Generation」→ 选 `Agnes AI (Intl)` / `Agnes AI (CN)` | **Skills → Toolsets** → Image Generation → 抽屉里选（或 **Config 页**） | **Capabilities → Toolsets** → Image Generation | 写 `image_gen.provider: agnes-image`（国内站 `agnes-cn-image`） |
+| **视频后端**<br>`video_gen.provider` | 同上，选「🎬 Video Generation」 | **Skills → Toolsets** → Video Generation | **Capabilities → Toolsets** → Video Generation | 写 `video_gen.provider: agnes-video`（国内站 `agnes-cn-video`） |
+
+> ⚠️ **`video_gen` 这个 toolset 默认是关着的** —— 先 `hermes tools enable video_gen`（或在上面任一界面里启用），否则选不到视频后端。
+> 插件的 provider 列表是**重启后**才被加载的（新装/更新时）；选好之后的切换一般立即生效。
 
 **验收**：`hermes plugins list` 里 `agnes` / `agnes-image` / `agnes-video` 都应是 enabled；
 `hermes plugins doctor plugins/<子目录路径>` 应打印

@@ -132,12 +132,18 @@ hermes plugins enable agnes-video       # 若 §3.1 已带 --enable 则会提示
 
 ## 4. 生效后在哪里用它
 
-在 `config.yaml` 里指定用哪个 provider id：
+装完并**重启承载进程**后，用**下面任意一种**方式把它选成当前视频后端 —— 四条路改的是同一个键
+（`video_gen.provider`），选哪个都行：
 
-```yaml
-video_gen:
-  provider: agnes-video        # 或 agnes-cn-video
-```
+| 方式 | 操作 |
+|---|---|
+| **命令行** | `hermes tools`（不带子命令 = 交互式配置 UI）→ 选「🎬 Video Generation」→ 在 provider 列表里选 `Agnes AI (Intl)` 或 `Agnes AI (CN)` |
+| **Dashboard** | 浏览器打开 dashboard（默认 `http://127.0.0.1:9119`，需登录）→ **Skills → Toolsets** → Video Generation → 抽屉里选 provider；也可直接在 **Config 页**改 `video_gen.provider` |
+| **直接改 config** | 在 `config.yaml` 里写 `video_gen.provider: agnes-video`（国内站写 `agnes-cn-video`） |
+| **桌面端 App** | **Capabilities → Toolsets** → Video Generation → 详情里的 provider 面板选 |
+
+> ⚠️ **视频生成这个 toolset 默认是关的**（Hermes 的默认设置里它是关闭项）：
+> 先 `hermes tools enable video_gen`，或在上面任一界面里把它启用，否则选不到。
 
 轮询地址由 `API_BASE` 派生（`/agnesapi` 挂在站点根下，**不在** `/v1` 下）——
 所以换区域不需要改第二处常量。

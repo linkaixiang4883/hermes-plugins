@@ -138,6 +138,9 @@ hermes plugins enable agnes       # 若 §3.1 已带 --enable 则会提示已启
 两个**并列条目**，同理不是配置重复。选完 `hermes model` 会把它写进 `config.yaml` 的
 `model.provider`；也可以直接 `hermes model agnes`（或 `agnes-cn`）非交互式切换。
 
+**四条路等价**（改的都是 `model.provider`）：`hermes model`（命令行）/ dashboard 的 **Models 页** /
+桌面端 App 的模型选择器 / 直接改 `config.yaml`。
+
 上下文窗口由插件的 `model_capabilities` **正式声明**（flash 512K / `2.5-pro` 1M），
 所以不会掉回 models.dev 的 200k 兜底 —— 这正是本插件存在的理由之一。
 

@@ -132,12 +132,15 @@ hermes plugins enable agnes-image       # 若 §3.1 已带 --enable 则会提示
 
 ## 4. 生效后在哪里用它
 
-在 `config.yaml` 里指定用哪个 provider id：
+装完并**重启承载进程**后，用**下面任意一种**方式把它选成当前图像后端 —— 四条路改的是同一个键
+（`image_gen.provider`），选哪个都行：
 
-```yaml
-image_gen:
-  provider: agnes-image        # 或 agnes-cn-image
-```
+| 方式 | 操作 |
+|---|---|
+| **命令行** | `hermes tools`（不带子命令 = 交互式配置 UI）→ 选「🎨 Image Generation」→ 在 provider 列表里选 `Agnes AI (Intl)` 或 `Agnes AI (CN)` |
+| **Dashboard** | 浏览器打开 dashboard（默认 `http://127.0.0.1:9119`，需登录）→ **Skills → Toolsets** → Image Generation → 抽屉里选 provider；也可直接在 **Config 页**改 `image_gen.provider` |
+| **直接改 config** | 在 `config.yaml` 里写 `image_gen.provider: agnes-image`（国内站写 `agnes-cn-image`） |
+| **桌面端 App** | **Capabilities → Toolsets** → Image Generation → 详情里的 provider 面板选 |
 
 生成出来的图片落在 `<HERMES_HOME>/cache/images/`（`save_b64_image` / `save_url_image`）。
 
