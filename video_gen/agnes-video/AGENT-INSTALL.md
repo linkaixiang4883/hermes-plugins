@@ -224,13 +224,19 @@ hermes plugins list | grep -i agnes-video      # 期望 Status = enabled，Versi
 ## 7. 卸载 / 更新
 
 ```bash
-hermes plugins update  agnes-video     # Git 安装的：拉最新
+hermes plugins update  agnes-video     # 有新版则重装到最新，没有则答 "already up to date"
 hermes plugins disable agnes-video     # 停用（不删文件）
 hermes plugins remove  agnes-video     # 连目录一起删
 ```
 
 本插件**不产生任何数据文件**，所以 `remove` 没有需要保留的东西。
 （注意用**插件名** `agnes-video`；`agnes-video` / `agnes-cn-video` 是 **provider id**，出现在 `config.yaml` 的 `video_gen.provider` 里，别混。）
+
+> `update` 同时就是"检查更新"：有新版会打印 `Re-installed from <源>: 旧..新`，没有则 `already up to date`。
+> ⚠️ 只在**按 §3.1 用 `install` 装的**上面有效；**§3.2 手工复制**的没有装源记录，`update` 会拒绝
+> （`Plugin 'X' was not installed from git … Cannot update.`）—— 那种情况要更新就重跑一次 §3.1/§3.2。
+> ⚠️ `hermes plugins check-updates` 看不到本插件的版本号（本仓库是一个仓库放多个插件，"子目录安装"的目录里没有 `.git`，
+> 而那条命令要靠 `.git` 比版本）；要确认有没有新版，用 `update` 或让 agent 去比对仓库里的 `plugin.yaml`。
 
 ## 8. 红线（agent 必读）
 

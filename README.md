@@ -59,6 +59,7 @@ hermes plugins install "file://C:/path/to/hermes-plugins#model-audit" --enable  
 > - 下载的 zip 里若没有 `.git`：先 `cd hermes-plugins && git init -q && git add -A && git commit -qm "vendor snapshot"`，再装。
 > - 首次装会打一行 `custom (unreviewed) source` 警告 —— 不在官方 catalog 里都这样，不是错误。
 > - 完全离线：手工把插件目录复制到 `<HERMES_HOME>/plugins/<插件名>/`，再 `hermes plugins enable <插件名>`。
+>   ⚠️ 这样装的**没有装源记录**，之后 `update` 会拒绝它（想能 update 就用 `install`）。
 
 ### Agnes 系列（三个后端）
 
@@ -127,15 +128,28 @@ hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-video --en
 `model-providers/agnes` 和 `image_gen/agnes-image` 两个子目录，各按它自己的 `AGENT-INSTALL.md` 做；
 key 我自己填，你不要索取明文；装完重启承载进程。」
 
+**想让它检查 / 完成更新**：
+
+```
+检查 https://github.com/linkaixiang4883/hermes-plugins 里 model-audit 有没有新版（对比该目录 plugin.yaml 的 version 与本地已装版本），有就更新到最新、重启承载进程，并把 hermes plugins doctor 的真实输出贴给我。
+```
+
+> 这条对**手工复制安装的**同样管用 —— agent 会去比对仓库，而不是依赖本机的 `update`（那种安装没有装源记录，`update` 会拒绝）。
+
 ## 更新 / 卸载
 
 `<插件名>` 取 `model-audit` / `opencode-go-usage` / `agnes` / `agnes-image` / `agnes-video`：
 
 ```bash
-hermes plugins update <插件名>       # Git 安装的插件：拉最新
+hermes plugins update <插件名>       # 有新版则重装到最新；没有则答 "already up to date"（= 检查 + 更新一步到位）
 hermes plugins disable <插件名>      # 停用（不删文件）
 hermes plugins remove <插件名>       # 连目录一起删
 ```
+
+**`update` 同时就是"检查更新"**：有新版会打印 `Re-installed from <源>: 旧..新`，没有则打印 `already up to date`。两条限制：
+
+- **`hermes plugins check-updates` 看不到本仓库插件的版本号**：那是 monorepo 的固有现象 —— 一个仓库放多个插件时安装形态是"子目录安装"，装出来的目录里**没有 `.git`**，而那个命令需要 `.git` 才能比版本。`update` 不受影响（它按记录的源重新克隆）。
+- **手工复制安装的**（见 §安装 的离线做法）没有装源记录 → `update` 会拒绝（`Plugin 'X' was not installed from git … Cannot update.`）。
 
 **插件名 ≠ provider 名**：上面用的是**插件名**；`config.yaml` 与 `hermes model` 里写的是 **provider id**
 （`agnes` / `agnes-cn` / `agnes-image` / `agnes-cn-image` / `agnes-video` / `agnes-cn-video`）。
