@@ -128,13 +128,16 @@ hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-video --en
 `model-providers/agnes` 和 `image_gen/agnes-image` 两个子目录，各按它自己的 `AGENT-INSTALL.md` 做；
 key 我自己填，你不要索取明文；装完重启承载进程。」
 
-**想让它检查 / 完成更新**：
+**想确认有没有新版 / 完成更新** —— 两条路都行：
+
+- **你自己查**：拿 [上面插件表](#插件一览) 里的版本与本地 `hermes plugins list` 显示的版本对照一下即可；
+  若当初是 `install` 装的，直接 `hermes plugins update <插件名>` 也行 —— 它一条命令就是"检查 + 更新"
+  （有新版答 `Re-installed from <源>: 旧..新`，没有答 `already up to date`）。
+- **让 agent 查**（**手工复制安装的**尤其适合 —— 那种安装没装源记录，`update` 会拒绝）：
 
 ```
 检查 https://github.com/linkaixiang4883/hermes-plugins 里 model-audit 有没有新版（对比该目录 plugin.yaml 的 version 与本地已装版本），有就更新到最新、重启承载进程，并把 hermes plugins doctor 的真实输出贴给我。
 ```
-
-> 这条对**手工复制安装的**同样管用 —— agent 会去比对仓库，而不是依赖本机的 `update`（那种安装没有装源记录，`update` 会拒绝）。
 
 ## 更新 / 卸载
 

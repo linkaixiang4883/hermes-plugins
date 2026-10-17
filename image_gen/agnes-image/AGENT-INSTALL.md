@@ -232,7 +232,8 @@ hermes plugins remove  agnes-image     # 连目录一起删
 > ⚠️ 只在**按 §3.1 用 `install` 装的**上面有效；**§3.2 手工复制**的没有装源记录，`update` 会拒绝
 > （`Plugin 'X' was not installed from git … Cannot update.`）—— 那种情况要更新就重跑一次 §3.1/§3.2。
 > ⚠️ `hermes plugins check-updates` 看不到本插件的版本号（本仓库是一个仓库放多个插件，"子目录安装"的目录里没有 `.git`，
-> 而那条命令要靠 `.git` 比版本）；要确认有没有新版，用 `update` 或让 agent 去比对仓库里的 `plugin.yaml`。
+> 而那条命令要靠 `.git` 比版本）。→ **要确认有没有新版：由你自己看**（`hermes plugins list` 里的版本 vs 仓库里本插件的
+> `plugin.yaml`，或直接跑 `update`），**或让 agent 去比对仓库** —— 对 §3.2 手工复制装的，后者是唯一可行方式。
 
 ## 8. 红线（agent 必读）
 
