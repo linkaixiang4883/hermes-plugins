@@ -6,7 +6,7 @@
 
 | 项 | 值 |
 |---|---|
-| 包版本 | `0.4.0`（与源插件逐字节一致，sha256 见附录 A） |
+| 包版本 | `0.4.1`（与本仓库 `model-audit/` 当前文件逐字节一致，sha256 见附录 A） |
 | 安装源 | 本文件所在的目录 = 插件树本身，同时是 **Git 仓库的子目录**（`hermes plugins install` 可直接装，见 §3.1）；本说明书随插件一起装进去 |
 | 安装目标 | `<HERMES_HOME>/plugins/model-audit/` |
 | 派生目标 | 无。本插件**没有桌面半**（不在桌面端 App 里加 UI）；页面由仪表盘的插件机制直接加载 |
@@ -147,7 +147,7 @@ hermes plugins install "file://<仓库根目录绝对路径>#model-audit" --enab
 ```
 <HERMES_HOME>/plugins/model-audit/
 ├── AGENT-INSTALL.md             # 本说明书（随插件走；不参与附录 A 校验）
-├── plugin.yaml                  # 清单：name=model-audit, version=0.3.0, provides_hooks=[post_api_request]
+├── plugin.yaml                  # 清单：name=model-audit, version=0.4.1, provides_hooks=[post_api_request]
 ├── __init__.py                  # agent 半（响应钩子 + post_api_request 落库）
 ├── model_audit_core.py          # 共享核心（判定 / 认可 / 标题只读 / 清理 / 分组）
 ├── dashboard/
@@ -197,8 +197,8 @@ hermes plugins enable model-audit
 核对：
 
 ```bash
-hermes plugins list | grep -i model-audit      # 期望 Status = enabled，Version = 0.3.0
-hermes plugins doctor model-audit              # 读法见 §5.2（Windows 上有已知的 WinError 32，别慌）
+hermes plugins list | grep -i model-audit      # 期望 Status = enabled，Version = 0.4.1
+hermes plugins doctor model-audit              # 读法见 §5.2；0.4.0 起 WinError 32 已消失（见 §7）
 ```
 
 ### 3.4 重启，然后给用户一句话
@@ -279,7 +279,7 @@ hermes plugins doctor model-audit
 期望（逐字读这两行，其余都别看）：
 
 ```
-  manifest: model-audit 0.4.0 (standalone)
+  manifest: model-audit 0.4.1 (standalone)
   registrations: 0 tool(s), 1 hook(s)
 ```
 
@@ -368,7 +368,7 @@ meta : {'retention_days': '90', 'capture_installed': '1790740076.0470893', 'patc
 
 ```bash
 HH="$(dirname "$(hermes config path)")"
-hermes plugins list                        # ① 插件被发现且 enabled，Version 0.3.0
+hermes plugins list                        # ① 插件被发现且 enabled，Version 0.4.1
 hermes plugins doctor model-audit          # ② manifest + registrations（§5.2 读法）
 grep -h "Mounted plugin API routes: /api/plugins/model-audit/" "$HH"/logs/*.log | tail -1   # ③ 后端挂载
 # ④ 采集：§5.4 的只读查库（patch_ok=1 + calls 增长）
@@ -424,7 +424,7 @@ rm -rf "$HH/plugins/model-audit"
 | `tests/test_audit_core.py` | 37957 | `9ce30d901c705c0943fbf57f68ca3682c9b41a74d136efd467a017ec9d3a9762` |
 | `tests/test_agent_half.py` | 5974 | `a754eaf4f1ddb12a362aabd6cafe930ea51ea35fc5609173b9407f4c9e91c31e` |
 | `tests/test_plugin_api.py` | 14517 | `9331f246e15a808e5b2ce92909c39853af72fbd07d6b97e038230c1c6fc236f3` |
-| `tests/smoke.mjs` | 15732 | `fefb288e341cbd1db69200da2783f590067f75d251d32e0bb5d879d65a333ea1` | `fefb288e341cbd1db69200da2783f590067f75d251d32e0bb5d879d65a333ea1` | `fefb288e341cbd1db69200da2783f590067f75d251d32e0bb5d879d65a333ea1` |
+| `tests/smoke.mjs` | 15732 | `fefb288e341cbd1db69200da2783f590067f75d251d32e0bb5d879d65a333ea1` |
 
 自查（可选）：
 

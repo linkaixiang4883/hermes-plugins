@@ -388,7 +388,7 @@ App 下次 reconcile 会自动重拷桌面半（不需要你手改 `desktop-plug
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
-| `plugin.yaml` | 349 | `5bb233dccda758a635ffa7ccb4b90a35aff7bf18aadfd0ba53f6187c28bf8cf5` |
+| `plugin.yaml` | 788 | `b74f9c3bedf5507333215a21399cf33cdb225a47fa361adc178c12b86f6a4b0a` |
 | `__init__.py` | 711 | `4116f16b270fb8ebdf505c19f3f2b9077d922d64845abf4c4e4d842da564a8df` |
 | `dashboard/manifest.json` | 406 | `937aab1606567d1866b2b80753152640fe7a57ef76a660c0071a13fbeac99c9d` |
 | `dashboard/plugin_api.py` | 30299 | `0da83f13ab58d8ebe67cb7ffae2f17bb83ee43b31be6c8851f7ace1699bc9fe2` |
