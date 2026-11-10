@@ -1,5 +1,5 @@
 name: agnes-image
-version: 1.2.1
+version: 1.2.2
 description: "Agnes AI 图像生成后端 —— 一个插件两个 provider：agnes-image（国际站 apihub.agnes-ai.com，AGNES_API_KEY）与 agnes-cn-image（国内站 api.agnes-ai.cn，AGNES_CN_API_KEY）。agnes-image-2.5-flash / 2.1-flash（国际站另有 2.0-flash）。文生图、图生图、多图合成，OpenAI 兼容 /v1/images/generations。"
 author: user
 kind: backend
@@ -8,5 +8,6 @@ requires_env:
   - AGNES_CN_API_KEY
 # 依赖面实测（2026-10-17）：agent.image_gen_provider / agent.video_gen_provider /
 # providers.register_provider 与 ctx.register_{image,video}_gen_provider 在 v0.21.6 上
-# 逐一存在性验证通过（v0.21.6 = 本仓最早的正式 release tag）。全量端到端实测：v0.22.2。
+# 逐一存在性验证通过（v0.21.6 = 本仓最早的正式 release tag）。全量端到端实测：v0.22.2；
+# v0.23.1 复核（2026-11-11）：加载 / doctor / 注册两个 provider 通过。
 requires_hermes: ">=0.21.6"

@@ -5,7 +5,7 @@
 
 | 项 | 值 |
 |---|---|
-| 包版本 | `1.3.1`（与本仓库 `video_gen/agnes-video/` 当前文件逐字节一致，sha256 见附录 A） |
+| 包版本 | `1.3.2`（与本仓库 `video_gen/agnes-video/` 当前文件逐字节一致，sha256 见附录 A） |
 | 安装源 | 本文件所在目录 = 插件树本身，同时是 **Git 仓库的子目录**（`hermes plugins install` 可直接装，见 §3.1） |
 | 安装目标 | `<HERMES_HOME>/plugins/agnes-video/` —— ⚠️ **会被扁平化**，**不是** `plugins/video_gen/agnes-video/` |
 | 插件身份 | `name: agnes-video`、`kind: backend`、声明 `requires_hermes: ">=0.21.6"` |
@@ -153,7 +153,7 @@ hermes plugins enable agnes-video       # 若 §3.1 已带 --enable 则会提示
 ### 5.1 清单与契约
 
 ```bash
-hermes plugins list | grep -i agnes-video                 # 期望：enabled，版本 1.3.1
+hermes plugins list | grep -i agnes-video                 # 期望：enabled，版本 1.3.2
 hermes plugins validate "$HH/plugins/agnes-video"          # 期望：Validation passed
 hermes plugins doctor  "$HH/plugins/agnes-video"           # 期望：OK: runtime discovery, manifest parsing, import, and registration passed
 ```
@@ -206,7 +206,7 @@ PYEOF
 ### 5.3 重启后确认（等用户确认已重启再跑）
 
 ```bash
-hermes plugins list | grep -i agnes-video      # 期望 Status = enabled，Version = 1.3.1
+hermes plugins list | grep -i agnes-video      # 期望 Status = enabled，Version = 1.3.2
 ```
 
 
@@ -255,8 +255,8 @@ hermes plugins remove  agnes-video     # 连目录一起删
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
-| `__init__.py` | 16101 | `ee2ad5142d3b72afaf4d9d54ee3d1b35201ed2be3527be97f706feb0fb65f5d9` |
-| `plugin.yaml` | 834 | `82aaa75a80a39b789bcb3090a4f130ee0e1cc2861df42a9d56b5814c9b91d8fb` |
+| `__init__.py` | 15681 | `9d9bec8d2625d55220e47e12eb019a066a22357e5bd90b4494500b3d3ed56c9b` |
+| `plugin.yaml` | 919 | `9bde540a33205e6b19f00400e7fa8358678b8a837fe54a7b8628583333b97e8a` |
 
 自查（可选）：
 

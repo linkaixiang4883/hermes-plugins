@@ -220,6 +220,9 @@ def _ttl_seconds(code: Any, failure_reason: Any, sole: bool) -> int:
     else:
         base = _ttl("EXHAUSTED_TTL_DEFAULT_SECONDS", 60 * 60)
     is_billing = code == 402 or failure_reason == "billing"
+    # 0.23 新增：billing_unverified（402 以外）一律短冷却，不论是否单 key
+    if failure_reason == "billing_unverified" and code != 402:
+        return min(base, _ttl("EXHAUSTED_TTL_SOLE_CREDENTIAL_SECONDS", 60))
     if is_billing:
         return base
     if sole:

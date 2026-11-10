@@ -22,7 +22,7 @@ Supports:
 API flow (async):
   1. POST /v1/videos  → create task, get video_id
   2. GET  /agnesapi?video_id=<ID>&model_name=<MODEL>  → poll until status=completed
-  3. Download video from returned URL → save to $HERMES_HOME/cache/videos/
+  3. Download video from returned URL → save to $HERMES_HOME/cache/generated/videos/
 
 Request contract (per model docs — height/width/num_frames are forbidden):
   - body: {model, prompt, mode, seconds(str 4-12), size "720P", aspect_ratio}

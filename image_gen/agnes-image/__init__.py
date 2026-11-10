@@ -23,7 +23,7 @@ API quirks:
   - Image-to-image uses ``extra_body.image`` array (not a top-level ``image``)
   - No ``tags`` parameter needed for img2img
 
-Output is saved to ``$HERMES_HOME/cache/images/``.
+Output is saved to ``$HERMES_HOME/cache/generated/images/``.
 """
 
 from __future__ import annotations

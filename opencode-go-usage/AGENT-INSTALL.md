@@ -6,7 +6,7 @@
 
 | 项 | 值 |
 |---|---|
-| 包版本 | `1.2.1`（与源插件逐字节一致，sha256 见附录 A） |
+| 包版本 | `1.2.2`（与源插件逐字节一致，sha256 见附录 A） |
 | 安装源 | 本文件所在的目录 = 插件树本身，同时是 **Git 仓库的子目录**（`hermes plugins install` 可直接装，见 §3.1）；本说明书随插件一起装进去 |
 | 安装目标 | `<HERMES_HOME>/plugins/opencode-go-usage/` |
 | 派生目标（App 自动写，**不要手改**） | `<HERMES_HOME>/desktop-plugins/opencode-go-usage/` |
@@ -116,7 +116,7 @@ hermes plugins install "file://<仓库根目录绝对路径>#opencode-go-usage" 
 ```
 <HERMES_HOME>/plugins/opencode-go-usage/
 ├── AGENT-INSTALL.md             # 本说明书（随插件走；不参与附录 A 校验）
-├── plugin.yaml                  # 清单：name=opencode-go-usage, version=1.2.1, kind=standalone
+├── plugin.yaml                  # 清单：name=opencode-go-usage, version=1.2.2, kind=standalone
 ├── __init__.py                  # agent 半（空 register）
 ├── dashboard/
 │   ├── manifest.json            # tab.hidden=true + api=plugin_api.py
@@ -163,7 +163,7 @@ hermes plugins enable opencode-go-usage
 核对：
 
 ```bash
-hermes plugins list | grep -i opencode-go-usage      # 期望 Status = enabled，Version = 1.2.1
+hermes plugins list | grep -i opencode-go-usage      # 期望 Status = enabled，Version = 1.2.2
 hermes plugins doctor opencode-go-usage              # 期望 "OK: runtime discovery, manifest parsing, import, and registration passed"
 ```
 
@@ -280,7 +280,7 @@ hermes plugins doctor opencode-go-usage
 期望（逐字）：
 
 ```
-  manifest: opencode-go-usage 1.2.1 (standalone)
+  manifest: opencode-go-usage 1.2.2 (standalone)
   OK: runtime discovery, manifest parsing, import, and registration passed
 ```
 
@@ -388,13 +388,13 @@ App 下次 reconcile 会自动重拷桌面半（不需要你手改 `desktop-plug
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
-| `plugin.yaml` | 788 | `b74f9c3bedf5507333215a21399cf33cdb225a47fa361adc178c12b86f6a4b0a` |
+| `plugin.yaml` | 907 | `5987ba43b38611644e227b1091f3fafd9042cc51bbee316aceade951436df5d0` |
 | `__init__.py` | 711 | `4116f16b270fb8ebdf505c19f3f2b9077d922d64845abf4c4e4d842da564a8df` |
-| `dashboard/manifest.json` | 406 | `937aab1606567d1866b2b80753152640fe7a57ef76a660c0071a13fbeac99c9d` |
-| `dashboard/plugin_api.py` | 30299 | `0da83f13ab58d8ebe67cb7ffae2f17bb83ee43b31be6c8851f7ace1699bc9fe2` |
+| `dashboard/manifest.json` | 406 | `ceb57341df5f31e46521c5c522d6d37293fa2b2bd11adc0d389708e9e7f46c2c` |
+| `dashboard/plugin_api.py` | 30530 | `658c2c6f3d56069788342f75a04c3a1a8417c47478203db05a856e18d07f92db` |
 | `dashboard/dist/index.js` | 304 | `45685cfc0675ce36620d347ba1a9026a8dd691fdcb52087c5f7671a76fa5a6a6` |
 | `desktop/plugin.js` | 20013 | `59488e8525897468746ddb2d7ec055faef3a8e12da7ccd89bb0b5924041c6944` |
-| `tests/test_plugin_api.py` | 21162 | `52e040f664de184afd2572597400a075f778eb82b61110c2568a998fa4d8ce95` |
+| `tests/test_plugin_api.py` | 21405 | `1b31e6bbe8f1c65b116cc1ee497bd125e572f95e648b3ead339e9838029e80b5` |
 
 自查（可选）：
 

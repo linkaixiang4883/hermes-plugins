@@ -23,6 +23,7 @@ import json
 import os
 import re
 import sqlite3
+import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
@@ -31,6 +32,10 @@ SCHEMA_VERSION = 2
 MAX_LIMIT = 500
 DEFAULT_RETENTION_DAYS = 90
 TITLE_TTL_SECONDS = 10.0
+
+# 同进程内串行化建库/迁移（agent 半可能在多个线程里被调用）；跨进程仍靠 SQLite 锁 +
+# _migrate_approvals 的 duplicate-column 幂等兜底。
+_SCHEMA_LOCK = threading.RLock()
 
 # 只保留这些响应头（小写精确匹配）。绝不落 Authorization / Cookie / Set-Cookie。
 HEADER_ALLOWLIST = frozenset({
@@ -44,10 +49,12 @@ ENDPOINT_HEADERS = ("x-opencode-endpoint-id", "x-litellm-model-api-base")
 # upstream_log_id 列的取值优先级：opencode 的 log id → Command Code 的 trace id
 LOG_ID_HEADERS = ("x-opencode-log-id", "x-trace-id")
 
-# 结构性无自证的 provider（实测，2026-09-28）：既没有自证头，body 的 model 也是请求别名回声
-# → 体证层对它零鉴别力 → 展示态单列「◌ 无自证」，不冒充"仅体证"。
-# 证据：Command Code 全量响应头 + 流式/非流式 body 逐 chunk 实读（见技能里的 provider 自证矩阵）。
-NO_SELF_ATTESTATION_PROVIDERS = frozenset({"commandcode"})
+# 结构性无自证的 provider（实测）：
+#  · commandcode（2026-09-28）：既没有自证头，body 的 model 也是请求别名回声 → 体证层零鉴别力。
+#  · opencode-go（2026-10-19 起）：厂商撤掉 x-opencode-upstream-model-id / x-opencode-endpoint-id，
+#    只剩 x-opencode-log-id + x-zen-model（echo）；公开 issue anomalyco/opencode#41969 仍未解决。
+#    若厂商恢复自证头，带头的行仍走 ok/mismatch，本集合只影响「无头 + 同族回声」的展示态。
+NO_SELF_ATTESTATION_PROVIDERS = frozenset({"commandcode", "opencode-go"})
 
 _TITLE_CACHE: Dict[tuple, tuple] = {}          # (state_db_path, session_id) -> (title, ts)
 
@@ -203,23 +210,24 @@ def schema_ready(path: Optional[Path] = None) -> bool:
 def _create_schema(db: Path, *, attempts: int = 5) -> None:
     """DDL + 迁移（幂等）。多进程同时启动时用 busy/locked 重试兜底（SQLite 原生锁 + busy_timeout=2000ms）。"""
     last: Optional[Exception] = None
-    for i in range(attempts):
-        try:
-            conn = connect(db)
+    with _SCHEMA_LOCK:
+        for i in range(attempts):
             try:
-                conn.executescript(_DDL)
-                _migrate(conn)
-                _migrate_approvals(conn)
-                conn.commit()
-            finally:
-                conn.close()
-            return
-        except sqlite3.OperationalError as exc:
-            if any(k in str(exc).lower() for k in ("locked", "busy")):
-                last = exc
-                time.sleep(0.1 * (i + 1))
-                continue
-            raise
+                conn = connect(db)
+                try:
+                    conn.executescript(_DDL)
+                    _migrate(conn)
+                    _migrate_approvals(conn)
+                    conn.commit()
+                finally:
+                    conn.close()
+                return
+            except sqlite3.OperationalError as exc:
+                if any(k in str(exc).lower() for k in ("locked", "busy")):
+                    last = exc
+                    time.sleep(0.1 * (i + 1))
+                    continue
+                raise
     if last is not None:
         raise last
 
@@ -318,7 +326,12 @@ def _migrate_approvals(conn: sqlite3.Connection) -> None:
         """)
     cols = {r[1] for r in conn.execute("PRAGMA table_info(approvals)")}
     if "provider" not in cols:                      # v2 → v3：加 provider 维度（同 alias 在不同 provider 下标准不同）
-        conn.execute("ALTER TABLE approvals ADD COLUMN provider TEXT")
+        try:
+            conn.execute("ALTER TABLE approvals ADD COLUMN provider TEXT")
+        except sqlite3.OperationalError as exc:
+            # 并发建库：另一个线程/进程刚加完这一列。幂等，继续。
+            if "duplicate column" not in str(exc).lower():
+                raise
         conn.execute("DROP INDEX IF EXISTS uq_approvals")
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_approvals "
                  "ON approvals(COALESCE(provider,''), requested_model, "

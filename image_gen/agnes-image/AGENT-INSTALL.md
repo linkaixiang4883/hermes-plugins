@@ -5,7 +5,7 @@
 
 | 项 | 值 |
 |---|---|
-| 包版本 | `1.2.1`（与本仓库 `image_gen/agnes-image/` 当前文件逐字节一致，sha256 见附录 A） |
+| 包版本 | `1.2.2`（与本仓库 `image_gen/agnes-image/` 当前文件逐字节一致，sha256 见附录 A） |
 | 安装源 | 本文件所在目录 = 插件树本身，同时是 **Git 仓库的子目录**（`hermes plugins install` 可直接装，见 §3.1） |
 | 安装目标 | `<HERMES_HOME>/plugins/agnes-image/` —— ⚠️ **会被扁平化**，**不是** `plugins/image_gen/agnes-image/` |
 | 插件身份 | `name: agnes-image`、`kind: backend`、声明 `requires_hermes: ">=0.21.6"` |
@@ -149,7 +149,7 @@ hermes plugins enable agnes-image       # 若 §3.1 已带 --enable 则会提示
 ### 5.1 清单与契约
 
 ```bash
-hermes plugins list | grep -i agnes-image                 # 期望：enabled，版本 1.2.1
+hermes plugins list | grep -i agnes-image                 # 期望：enabled，版本 1.2.2
 hermes plugins validate "$HH/plugins/agnes-image"          # 期望：Validation passed
 hermes plugins doctor  "$HH/plugins/agnes-image"           # 期望：OK: runtime discovery, manifest parsing, import, and registration passed
 ```
@@ -202,7 +202,7 @@ PYEOF
 ### 5.3 重启后确认（等用户确认已重启再跑）
 
 ```bash
-hermes plugins list | grep -i agnes-image      # 期望 Status = enabled，Version = 1.2.1
+hermes plugins list | grep -i agnes-image      # 期望 Status = enabled，Version = 1.2.2
 ```
 
 
@@ -251,8 +251,8 @@ hermes plugins remove  agnes-image     # 连目录一起删
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
-| `__init__.py` | 13609 | `9c510ea5120b237545ddf6ef828ed33cdfb2942f35dce38668cfaf0297c6a96d` |
-| `plugin.yaml` | 796 | `efd1a9813788e9dc408cf984b0a01b4d772ccda3b65ea10df36a66287957c36f` |
+| `__init__.py` | 13232 | `c3db02a9867857a75783e2328e94be59046e2016283a668f6cf003c5dbf79967` |
+| `plugin.yaml` | 881 | `5001ffaf6e05503e0fb41739f26c25ed694ed11a2dbf92209bc507146ac87b3c` |
 
 自查（可选）：
 

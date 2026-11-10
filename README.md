@@ -9,19 +9,23 @@
 
 | 目录 | 插件 | 一句话 | 需要 API key？ | 版本 |
 |---|---|---|---|---|
-| [`model-audit/`](model-audit/) | **模型对账**（仪表盘页） | 逐次记录「请求 alias → 上游实际返回的 model / 路由端点」，在 Model Audit 页对账；用于发现中转掉包 / 降级 / 换路由 | 不需要 | `0.4.1` |
-| [`opencode-go-usage/`](opencode-go-usage/) | **编码套餐用量芯片**（桌面端状态栏） | OpenCode Go / Command Code GOAT 用量（5h / 周 / 月窗口 + 详情面板），只在使用对应套餐模型时显示 | 需要用户自己的套餐 key（已配进 Hermes） | `1.2.1` |
+| [`model-audit/`](model-audit/) | **模型对账**（仪表盘页） | 逐次记录「请求 alias → 上游实际返回的 model / 路由端点」，在 Model Audit 页对账；用于发现中转掉包 / 降级 / 换路由 | 不需要 | `0.4.2` |
+| [`opencode-go-usage/`](opencode-go-usage/) | **编码套餐用量芯片**（桌面端状态栏） | OpenCode Go / Command Code GOAT 用量（5h / 周 / 月窗口 + 详情面板），只在使用对应套餐模型时显示 | 需要用户自己的套餐 key（已配进 Hermes） | `1.2.2` |
 
 ### Agnes AI 文本 / 图像 / 视频后端（按需选装）
 
 | 目录 | 插件 | 作用 | `kind` | 版本 |
 |---|---|---|---|---|
 | [`model-providers/agnes`](model-providers/agnes/) | `agnes` + `agnes-cn` | 模型提供方：国际站（apihub.agnes-ai.com / `AGNES_API_KEY`）与国内站（api.agnes-ai.cn / `AGNES_CN_API_KEY`） | `model-provider` | `1.1.0` |
-| [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` + `agnes-cn-image` | 图像生成后端：国际站（`AGNES_API_KEY`，含 2.0-flash）与国内站（`AGNES_CN_API_KEY`，无 2.0-flash） | `backend` | `1.2.1` |
-| [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` + `agnes-cn-video` | 视频生成后端：国际站（`AGNES_API_KEY`）与国内站（`AGNES_CN_API_KEY`），模型集相同 | `backend` | `1.3.1` |
+| [`image_gen/agnes-image`](image_gen/agnes-image/) | `agnes-image` + `agnes-cn-image` | 图像生成后端：国际站（`AGNES_API_KEY`，含 2.0-flash）与国内站（`AGNES_CN_API_KEY`，无 2.0-flash） | `backend` | `1.2.2` |
+| [`video_gen/agnes-video`](video_gen/agnes-video/) | `agnes-video` + `agnes-cn-video` | 视频生成后端：国际站（`AGNES_API_KEY`）与国内站（`AGNES_CN_API_KEY`），模型集相同 | `backend` | `1.3.2` |
 
 > 三个 agnes 插件每个都注册**两个 provider**（国际站 + 国内站）—— 选择器里因此是**两个并列条目**，
 > 这是设计如此（Hermes 没有「子选项」这种形式），不是重复配置。
+>
+> ⚠️ `model-audit` 的「上游 model」依赖 provider 的响应头自证：`opencode-go` 自 2026-10-19 起、
+> `commandcode` 结构性都不再提供 → 这两家目前只能记录调用/用量/耗时，无法判断是否掉包；
+> 带自证头的 provider（如 LiteLLM 系）仍正常。
 
 每个插件目录都带一份 **`AGENT-INSTALL.md`**（写给智能体的说明书：前置核对 / 安装 / 验收 / 故障对照表）。
 

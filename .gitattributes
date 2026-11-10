@@ -1,0 +1,26 @@
+# ── 换行符统一 LF ─────────────────────────────────────────────────────
+# 规则随仓库分发：克隆后自动生效。本机 Windows 的全局 core.autocrlf 可能是 true，
+# 那份设置不进仓库，靠这里的属性兜底（仓库本地也已设 core.autocrlf=false）。
+* text=auto eol=lf
+
+# Windows 批处理必须 CRLF（cmd.exe 对 LF-only 脚本在个别结构下会出问题）。
+# 目前仓库里没有这类文件，先写规则防止未来被 eol=lf 误伤。
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制 / 资源：不做任何换行转换（避免 diff 噪音与损坏风险）。
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary
+*.gz binary
+*.mp4 binary
+*.webm binary
+*.pdf binary

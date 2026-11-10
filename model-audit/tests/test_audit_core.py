@@ -259,7 +259,9 @@ def cc_row(body, model="deepseek/deepseek-v4.1-flash"):
     return core.build_row(p, {"x-trace-id": "902e13a7cf6538e87467a4e4d5e2b9db"}, None, profile_home="H:/cc")
 
 
-check("无自证：常量表含 commandcode", "commandcode" in core.NO_SELF_ATTESTATION_PROVIDERS)
+check("无自证：常量表含 commandcode / opencode-go",
+      {"commandcode", "opencode-go"} <= set(core.NO_SELF_ATTESTATION_PROVIDERS),
+      str(core.NO_SELF_ATTESTATION_PROVIDERS))
 check("无自证：allowlist 含 x-trace-id", "x-trace-id" in core.HEADER_ALLOWLIST)
 cc1 = cc_row("deepseek/deepseek-v4.1-flash")                 # 回声（body == alias）
 check("无自证：trace id 落 upstream_log_id",
@@ -267,6 +269,13 @@ check("无自证：trace id 落 upstream_log_id",
 _both = core.build_row({**payload, "provider": "opencode-go"},
                        {"x-opencode-log-id": "log-1", "x-trace-id": "trace-1"}, None, profile_home="H:/x")
 check("无自证：opencode log id 优先于 trace id", _both["upstream_log_id"] == "log-1", str(_both["upstream_log_id"]))
+check("无自证：opencode-go 回声行展示为 no_attestation",
+      core._display_status(
+          core.build_row({**payload, "provider": "opencode-go",
+                          "response_model": "deepseek-v4.1-flash"},
+                         {"x-opencode-log-id": "log-og", "x-zen-model": "deepseek-v4.1-flash"},
+                         None, profile_home="H:/og"),
+          {}, {}) == "no_attestation")
 core.insert_call(na, cc1)
 core.insert_call(na, {**cc_row("deepseek/deepseek-v4.1-flash"), "ts_start": cc1["ts_start"] + 1})
 core.insert_call(na, {**cc_row("mimo-v2.6-flash"), "ts_start": cc1["ts_start"] + 2})   # 不同族 → 仍是异常

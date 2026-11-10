@@ -6,7 +6,7 @@
 
 | 项 | 值 |
 |---|---|
-| 包版本 | `0.4.1`（与本仓库 `model-audit/` 当前文件逐字节一致，sha256 见附录 A） |
+| 包版本 | `0.4.2`（与本仓库 `model-audit/` 当前文件逐字节一致，sha256 见附录 A） |
 | 安装源 | 本文件所在的目录 = 插件树本身，同时是 **Git 仓库的子目录**（`hermes plugins install` 可直接装，见 §3.1）；本说明书随插件一起装进去 |
 | 安装目标 | `<HERMES_HOME>/plugins/model-audit/` |
 | 派生目标 | 无。本插件**没有桌面半**（不在桌面端 App 里加 UI）；页面由仪表盘的插件机制直接加载 |
@@ -51,8 +51,8 @@
 - **不改 Hermes 源码文件**：只在运行时**内存里**包装一个函数（fail-open），源码树一个字节都不动。
 - **不记录消息正文**：只记元数据（模型名、端点、时间、tokens、finish_reason、会话 id 与标题）。
 - **只覆盖主对话调用**：辅助调用（标题生成 / 压缩 / 识图）不走这条链路，不采集。
-- **不是所有 provider 都能验**：有的家结构上就不发自证头（如 Command Code——body 里的 `model` 只是请求别名的回声）→
-  它的行只能是「◌ 无自证」，模型级掉包检测对那一家无解。这是上游不给信息，**不是插件故障**。
+- **不是所有 provider 都能验**：有的家结构上就不发自证头（Command Code；opencode-go 自 2026-10-19 起也撤了 `x-opencode-upstream-model-id` / `x-opencode-endpoint-id`）→
+  它们的行只能是「◌ 无自证」，模型级掉包检测对这两家无解（opencode issue #41969）。这是上游不给信息，**不是插件故障**。
 
 ---
 
@@ -147,7 +147,7 @@ hermes plugins install "file://<仓库根目录绝对路径>#model-audit" --enab
 ```
 <HERMES_HOME>/plugins/model-audit/
 ├── AGENT-INSTALL.md             # 本说明书（随插件走；不参与附录 A 校验）
-├── plugin.yaml                  # 清单：name=model-audit, version=0.4.1, provides_hooks=[post_api_request]
+├── plugin.yaml                  # 清单：name=model-audit, version=0.4.2, provides_hooks=[post_api_request]
 ├── __init__.py                  # agent 半（响应钩子 + post_api_request 落库）
 ├── model_audit_core.py          # 共享核心（判定 / 认可 / 标题只读 / 清理 / 分组）
 ├── dashboard/
@@ -197,7 +197,7 @@ hermes plugins enable model-audit
 核对：
 
 ```bash
-hermes plugins list | grep -i model-audit      # 期望 Status = enabled，Version = 0.4.1
+hermes plugins list | grep -i model-audit      # 期望 Status = enabled，Version = 0.4.2
 hermes plugins doctor model-audit              # 读法见 §5.2；0.4.0 起 WinError 32 已消失（见 §7）
 ```
 
@@ -261,7 +261,7 @@ node tests/smoke.mjs dashboard/dist/index.js
 
 | 脚本 | PASS 条数（本包实测） | 结尾 |
 |---|---|---|
-| `test_audit_core.py` | 148 | `FAILED: none` |
+| `test_audit_core.py` | 150 | `FAILED: none` |
 | `test_agent_half.py` | 21 | `FAILED: none` |
 | `test_plugin_api.py` | 60 | `FAILED: none` |
 | `smoke.mjs` | 50 | `FAILED: none` |
@@ -279,7 +279,7 @@ hermes plugins doctor model-audit
 期望（逐字读这两行，其余都别看）：
 
 ```
-  manifest: model-audit 0.4.1 (standalone)
+  manifest: model-audit 0.4.2 (standalone)
   registrations: 0 tool(s), 1 hook(s)
 ```
 
@@ -368,7 +368,7 @@ meta : {'retention_days': '90', 'capture_installed': '1790740076.0470893', 'patc
 
 ```bash
 HH="$(dirname "$(hermes config path)")"
-hermes plugins list                        # ① 插件被发现且 enabled，Version 0.4.1
+hermes plugins list                        # ① 插件被发现且 enabled，Version 0.4.2
 hermes plugins doctor model-audit          # ② manifest + registrations（§5.2 读法）
 grep -h "Mounted plugin API routes: /api/plugins/model-audit/" "$HH"/logs/*.log | tail -1   # ③ 后端挂载
 # ④ 采集：§5.4 的只读查库（patch_ok=1 + calls 增长）
@@ -415,13 +415,13 @@ rm -rf "$HH/plugins/model-audit"
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
-| `plugin.yaml` | 833 | `16cbe9f0aef952560faa9e2a40c13ed072adc16a46ca1b90428f20fcab4e1475` |
+| `plugin.yaml` | 976 | `ca92ff751932760e13262bd12132aabd37237b8eee9fe0f7e6242fb379845af6` |
 | `__init__.py` | 10303 | `1a1053a65086cf36a8bc3885396147632f2725342f86e6a75555e70fdcd205e8` |
-| `model_audit_core.py` | 45163 | `0e107297a10242ea37106d13f84d8a40cbdb317943f0b9cf446a5f3da9f5febc` |
-| `dashboard/manifest.json` | 333 | `5b67ec5a9487a2ae7f6b2cc84f14880e62904cb93e57b98a0fce60b5ac90aae7` |
+| `model_audit_core.py` | 45904 | `bce5e262090722bab66d83a18da6f33321e26be715a5e050a32414e9c3fe35ec` |
+| `dashboard/manifest.json` | 333 | `55332deb6834b38d2bb83887e2d700d49ef2cc246aed9c866d27df3e23137031` |
 | `dashboard/plugin_api.py` | 9331 | `cffd01817950e7d3839d4e36846799833ade2145753f8ce66fef812568e4beb3` |
 | `dashboard/dist/index.js` | 32731 | `7967772b98e885b9908042a574cdcd60a9bbb2d959c7e75e84c8b7c987271e04` |
-| `tests/test_audit_core.py` | 37957 | `9ce30d901c705c0943fbf57f68ca3682c9b41a74d136efd467a017ec9d3a9762` |
+| `tests/test_audit_core.py` | 38462 | `6f29963243293fdef95674145fff8080f17595815996985febadfde0211f8ae3` |
 | `tests/test_agent_half.py` | 5974 | `a754eaf4f1ddb12a362aabd6cafe930ea51ea35fc5609173b9407f4c9e91c31e` |
 | `tests/test_plugin_api.py` | 14517 | `9331f246e15a808e5b2ce92909c39853af72fbd07d6b97e038230c1c6fc236f3` |
 | `tests/smoke.mjs` | 15732 | `fefb288e341cbd1db69200da2783f590067f75d251d32e0bb5d879d65a333ea1` |

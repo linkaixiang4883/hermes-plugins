@@ -101,6 +101,8 @@ check("④ 冷却到期后回到优先位", active3["id"] == "a", f"active={acti
 check("④ TTL 常量对齐(429→3600s)", m._ttl_seconds(429, None, False) == 3600)
 check("④ TTL 常量对齐(401→300s)", m._ttl_seconds(401, None, False) == 300)
 check("④ TTL 单 key 兜底(60s)", m._ttl_seconds(429, None, True) == 60)
+check("④ billing_unverified 非 402 → 60s（0.23 对齐）", m._ttl_seconds(500, "billing_unverified", False) == 60)
+check("④ billing_unverified 402 → 按 billing 保留 base", m._ttl_seconds(402, "billing_unverified", False) == 3600)
 
 print("\n== ② 错误映射（monkeypatch 401 / 403 / 网络） ==")
 m.CACHE.clear()
