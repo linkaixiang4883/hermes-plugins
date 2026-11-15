@@ -72,9 +72,12 @@ if rc.get("ok"):
           rc["provider"]["kind"] == "windows" and rc["provider"]["short"] == "GOAT", str(rc.get("provider")))
     check("①b 前两个窗口 rolling/weekly", [w["id"] for w in wins][:2] == ["rolling", "weekly"], str([w["id"] for w in wins]))
     check("①b 百分比 0..100", bool(wins) and all(0 <= w["percent"] <= 100 for w in wins), str([w["percent"] for w in wins]))
-    check("①b resetAt 为 ISO（毫秒已换算）",
-          all((w.get("resetsAt") or "").endswith("Z") and "T" in (w.get("resetsAt") or "") for w in wins),
-          str([w.get("resetsAt") for w in wins]))
+    # 未开始（percent=0）的窗口上游不给重置时间（实测 2026-11-16：5h 窗口 percent=0 → resetsAt=null），
+    # 所以只对「有占用」的窗口要求 ISO；null 只在 percent==0 时合法。
+    check("①b resetAt 为 ISO（毫秒已换算；未开始的窗口可空）",
+          all((w.get("resetsAt") or "").endswith("Z") and "T" in (w.get("resetsAt") or "")
+              for w in wins if (w.get("percent") or 0) > 0),
+          str([(w.get("id"), w.get("percent"), w.get("resetsAt")) for w in wins]))
 else:
     check("①b ok=true", False, str(rc))
 

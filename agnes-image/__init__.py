@@ -1,6 +1,6 @@
 """Agnes AI image generation backends — 国际站 + 国内站，一个插件两个 provider。
 
-形态照 Hermes 内置 ``plugins/model-providers/opencode-zen``：一个文件注册两个 provider，
+形态照 Hermes 自带的 ``<HERMES_HOME>/hermes-agent/plugins/model-providers/opencode-zen``（不是本仓目录）：一个文件注册两个 provider，
 选择器里就是两个**并列条目**（Hermes 没有 variant / 子选择概念）。
 
     provider id        base_url                          env var

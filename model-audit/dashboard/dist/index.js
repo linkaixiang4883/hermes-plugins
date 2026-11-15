@@ -1,7 +1,7 @@
 /* model-audit —— dashboard 页面（无构建、无 import；一切从 window.__HERMES_PLUGIN_SDK__ 取）
  * 三个视图：audit（对账） / groups（分组统计） / admin（认可管理），用普通 button 切换。
  * 展示态两层：① 自证（响应头）→ ok / mismatch / new_route；② 体证（无自证头时看 body 的 model）
- * → body_only / body_mismatch；结构性无自证的 provider（如 commandcode）→ no_attestation（回声=没证据）。
+ * → body_only / body_mismatch；结构性无自证的 provider（如 commandcode / opencode-go）→ no_attestation（回声=没证据）。
  * 都写在查询期算（原始记录里没有这些状态）。 */
 (function () {
   "use strict";

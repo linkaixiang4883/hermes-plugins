@@ -218,7 +218,7 @@ function registerChip() {
     order: 130,
     data: {
       id: ID, // 唯一 id：右键"显示/隐藏"菜单与持久化都用它
-      label: jsx(ChipLabel, {}), // 动态前缀（provider.short，缺省 'Go'）
+      label: jsx(ChipLabel, {}), // 动态前缀（provider.short；数据未到时留空）
       detail: jsx(ChipDetail, {}),
       title: pick(titleKey, 'chipTitle'),
       menuContent: () => jsx(UsagePanel, {}),

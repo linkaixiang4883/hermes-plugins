@@ -28,7 +28,6 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-SCHEMA_VERSION = 2
 MAX_LIMIT = 500
 DEFAULT_RETENTION_DAYS = 90
 TITLE_TTL_SECONDS = 10.0

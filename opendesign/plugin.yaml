@@ -1,0 +1,10 @@
+name: opendesign
+version: 0.3.2
+description: "OpenDesign Cloud（open-design.ai）套餐制模型网关 —— 单 provider：amr-link.open-design.ai/v1，OPENDESIGN_API_KEY（sk-amr 运行时 key）。chat completions 主路径；上下文/输出/图片模态取自 /v1/models 的 metadata（离线用内置快照兜底）；生图模型自动过滤。"
+author: user
+kind: model-provider
+# 依赖面（本机 v0.23.1 实测存在）：ProviderProfile.model_capabilities / get_max_tokens /
+# supported_reasoning_efforts / max_tokens_param / fetch_models / setup_reasoning_efforts /
+# hostnames / models_url。错误分类**不覆盖**（交回内置）。
+# 更低版本未验证；provider 发现链不检查 requires_hermes，本字段只用于 validate / PluginManager。
+requires_hermes: ">=0.23.1"

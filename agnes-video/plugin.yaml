@@ -7,7 +7,7 @@ requires_env:
   - AGNES_API_KEY
   - AGNES_CN_API_KEY
 # 依赖面实测（2026-10-17）：agent.image_gen_provider / agent.video_gen_provider /
-# providers.register_provider 与 ctx.register_{image,video}_gen_provider 在 v0.21.6 上
-# 逐一存在性验证通过（v0.21.6 = 本仓最早的正式 release tag）。全量端到端实测：v0.22.2；
+# agent.secret_scope.get_secret 与 ctx.register_{image,video}_gen_provider 在 v0.21.6 上
+# 逐一存在性验证通过（v0.21.6 = 本插件声明的最低支持版本，实测起点）。全量端到端实测：v0.22.2；
 # v0.23.1 复核（2026-11-11）：加载 / doctor / 注册两个 provider 通过。
 requires_hermes: ">=0.21.6"

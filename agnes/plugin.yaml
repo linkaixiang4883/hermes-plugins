@@ -8,7 +8,7 @@ author: user
 # 依赖面实测（2026-10-17）：providers.register_provider / providers.base.ProviderProfile
 # 在 v0.21.6 上逐项存在性验证通过（v0.21.6 = 本仓最早的正式 release tag）。
 # 另注（待清理的技术债）：本插件还向 hermes_cli.providers.HERMES_OVERLAYS 与
-# hermes_cli.models._PROVIDER_MODELS 注入条目 —— 官方文档称 register_provider(ProviderProfile)
-# 已自动接好这些集成点，注入疑为旧 workaround；因 _PROVIDER_MODELS 仍被静态目录逻辑使用，
-# 需实测确认后才能移除。全量端到端实测版本：v0.22.2。
+# hermes_cli.models._PROVIDER_MODELS 注入条目。2026-11-16 复核：v0.23.1 已提供正式面
+# （ProviderProfile.provider_overlay / static_models），注入是 v0.19 时代的老 workaround，
+# validate 会报 ⚠ private core imports；待对比实测通过后移除。全量端到端实测版本：v0.22.2。
 requires_hermes: ">=0.21.6"

@@ -9,13 +9,18 @@
 
 !/model-audit/
 !/opencode-go-usage/
-!/image_gen/
-!/video_gen/
-!/model-providers/
+!/agnes/
+!/agnes-image/
+!/agnes-video/
+!/opendesign/
 
-# 这两个同属自建、但本次**未纳入发布**（要发布就删掉这两行再提交）
-/model-providers/agentrouter/
-/model-providers/sensenova/
+# 注：插件目录一律顶层，目录名 = plugin.yaml 的 name。
+# 早期用过分类目录（model-providers/、image_gen/、video_gen/），已废弃；
+# 那三个条目连同 /model-providers/agentrouter/、/model-providers/sensenova/ 一起删除
+# —— /* 已覆盖任何未来重建的同名目录，无需再列。
+
+# 本地随手记，永不入库（/* 已覆盖，列出以表明这是有意排除而非漏放行）
+/IDEA.md
 
 # ── 目录内部的「运行期产物」必须单独排掉（白名单只管目录进不进）──────────
 __pycache__/

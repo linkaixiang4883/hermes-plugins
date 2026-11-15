@@ -1,13 +1,13 @@
 # agnes-video 安装指导（写给 agent 执行）
 
 > **给人**：把本目录整个丢给你的 agent，说一句「按 `AGENT-INSTALL.md` 把 agnes-video 装上并验收」。
-> **给 agent**：照 §2 → §3 → §5 顺序执行。§5 每条都要**真跑并贴真实输出**，不许用「应该没问题」收尾。
+> **给 agent**：照 §2 → §3 → §4 → §5 顺序执行。§5 每条都要**真跑并贴真实输出**，不许用「应该没问题」收尾。
 
 | 项 | 值 |
 |---|---|
-| 包版本 | `1.3.2`（与本仓库 `video_gen/agnes-video/` 当前文件逐字节一致，sha256 见附录 A） |
+| 包版本 | `1.3.2`（与本仓库 `agnes-video/` 当前文件逐字节一致，sha256 见附录 A） |
 | 安装源 | 本文件所在目录 = 插件树本身，同时是 **Git 仓库的子目录**（`hermes plugins install` 可直接装，见 §3.1） |
-| 安装目标 | `<HERMES_HOME>/plugins/agnes-video/` —— ⚠️ **会被扁平化**，**不是** `plugins/video_gen/agnes-video/` |
+| 安装目标 | `<HERMES_HOME>/plugins/agnes-video/`（目录名 = 插件名）。⚠️ 2026-11 之前的老版本装在 `plugins/video_gen/agnes-video/`，升级时删掉旧的 |
 | 插件身份 | `name: agnes-video`、`kind: backend`、声明 `requires_hermes: ">=0.21.6"` |
 | 注册的 provider | **两个**（一个插件注册两个 provider，形态同内置 `opencode-zen`）：`agnes-video`（国际站 / `AGNES_API_KEY`）与 `agnes-cn-video`（国内站 / `AGNES_CN_API_KEY`） |
 | 派生目标 | 无。没有桌面半、没有仪表盘页、不建数据库、不写任何状态文件 |
@@ -22,8 +22,7 @@
 **不做什么**（避免 agent 自己脑补）：
 
 - 不修改 Hermes 源码、不改 `config.yaml`、不动 `auth.json`。
-- 不读写任何 Hermes 内部数据库；只在 `import` 时往 `agent.model_metadata` 的上下文缓存里写几条
-  `(model, base_url) → context_window`（幂等，`save_context_length`；失败静默忽略）。
+- 不读写任何 Hermes 内部数据库，import 时也不写任何状态（context_window 由模型 provider 插件负责，与本插件无关）。
 - 不发遥测、不上传任何数据；只从环境变量读 API key，key 不打印、不落盘、不进日志。
 
 > **为什么"一个插件两个 provider"**：Hermes **没有** variant / 子选择概念，多区域只能靠
@@ -68,26 +67,29 @@ HH="$(dirname "$(hermes config path)")" && echo "$HH"
 ### 3.1 来源 A（推荐）：一条命令从 Git 源安装
 
 ```bash
-hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-video --enable
+hermes plugins install linkaixiang4883/hermes-plugins/agnes-video --enable
 ```
+
+> 装完会逐个询问 `AGNES_API_KEY` / `AGNES_CN_API_KEY`：**直接回车跳过**（非交互会 EOF 跳过），不要在这里输入 key —— 按 §3.3 写占位行、由用户自己填。
+> 前提：仓库默认分支已包含扁平化的 `agnes-video/` 目录（2026-11 前的分支只有 `video_gen/agnes-video`）；否则用 `--ref <含该目录的 40 位 SHA>`，或按 §3.2 手工复制。
 
 **装固定版本**（`--ref` 只接受完整 40 位 commit SHA，不接受 tag 名）：
 
 ```bash
 git ls-remote https://github.com/linkaixiang4883/hermes-plugins.git refs/heads/main
-hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-video --ref <40位SHA> --enable
+hermes plugins install linkaixiang4883/hermes-plugins/agnes-video --ref <40位SHA> --enable
 ```
 
 **从本机源码装**（本目录已是仓库子目录；在仓库根目录执行）：
 
 ```bash
 # macOS / Linux
-hermes plugins install "file://$PWD#video_gen/agnes-video" --enable
+hermes plugins install "file://$PWD#agnes-video" --enable
 ```
 
 ```powershell
 # Windows（pwsh）—— file:// 必须两斜杠，三斜杠会被 Git for Windows 解析失败（实测）
-hermes plugins install "file://C:/path/to/hermes-plugins#video_gen/agnes-video" --enable
+hermes plugins install "file://C:/path/to/hermes-plugins#agnes-video" --enable
 ```
 
 > 首次装会打一行 `custom (unreviewed) source` 警告 —— 不在官方 catalog 里都这样，不是错误。
@@ -97,10 +99,15 @@ hermes plugins install "file://C:/path/to/hermes-plugins#video_gen/agnes-video" 
 没有 `git` / 完全离线时：
 
 ```bash
-mkdir -p "$HH/plugins" && cp -r <本目录> "$HH/plugins/agnes-video"
+mkdir -p "$HH/plugins" && cp -r "C:/path/to/hermes-plugins/agnes-video" "$HH/plugins/agnes-video"
 ```
 
-⚠️ 目标目录名必须是 **`agnes-video`**（= `plugin.yaml` 的 `name`），不是 `video_gen/agnes-video`。
+```powershell
+New-Item -ItemType Directory -Force "$env:HERMES_HOME/plugins" | Out-Null
+Copy-Item -Recurse -Force "C:/path/to/hermes-plugins/agnes-video" "$env:HERMES_HOME/plugins/agnes-video"
+```
+
+⚠️ 目标目录名必须是 **`agnes-video`**（= `plugin.yaml` 的 `name`）。
 
 ### 3.3 写 API key 到 `$HH/.env`
 
@@ -132,14 +139,14 @@ hermes plugins enable agnes-video       # 若 §3.1 已带 --enable 则会提示
 
 ## 4. 生效后在哪里用它
 
-装完并**重启承载进程**后，用**下面任意一种**方式把它选成当前视频后端 —— 四条路改的是同一个键
+重启后，用**下面任意一种**方式把它选成当前视频后端 —— 四条路改的是同一个键
 （`video_gen.provider`），选哪个都行：
 
 | 方式 | 操作 |
 |---|---|
 | **命令行** | `hermes tools`（不带子命令 = 交互式配置 UI）→ 选「🎬 Video Generation」→ 在 provider 列表里选 `Agnes AI (Intl)` 或 `Agnes AI (CN)` |
 | **Dashboard** | 浏览器打开 dashboard（默认 `http://127.0.0.1:9119`，需登录）→ **Skills → Toolsets** → Video Generation → 抽屉里选 provider；也可直接在 **Config 页**改 `video_gen.provider` |
-| **直接改 config** | 在 `config.yaml` 里写 `video_gen.provider: agnes-video`（国内站写 `agnes-cn-video`） |
+| **直接改 config** | 在 `config.yaml` 里写 `video_gen.provider: agnes-video`（国内站写 `agnes-cn-video`）；`plugins.enabled` 白名单仍用 `hermes plugins enable`，别手工改 |
 | **桌面端 App** | **Capabilities → Toolsets** → Video Generation → 详情里的 provider 面板选 |
 
 > ⚠️ **视频生成这个 toolset 默认是关的**（Hermes 的默认设置里它是关闭项）：
@@ -166,15 +173,13 @@ hermes plugins doctor  "$HH/plugins/agnes-video"           # 期望：OK: runtim
 PY="$HH/hermes-agent/venv/Scripts/python.exe"     # Windows
 # PY="$HH/hermes-agent/venv/bin/python"           # macOS / Linux
 [ -x "$PY" ] || PY="$(command -v python3 || command -v python)"
+"$PY" -c 'import requests' 2>/dev/null || { echo "$PY 缺 requests，请改用 $HH/hermes-agent/venv 里的解释器"; exit 1; }
 "$PY" - "$HH" <<'PYEOF'
 import importlib.util, pathlib, sys
 HH = pathlib.Path(sys.argv[1])          # 由外层命令传入 $HH
 sys.path.insert(0, str(HH / "hermes-agent"))
 spec_path = HH / "plugins" / "agnes-video" / "__init__.py"      # 扁平安装（hermes plugins install 的落点）
-if not spec_path.is_file():                                   # 兜底：手工放在分类子目录里的形态
-    cand = sorted(HH.glob("plugins/*/agnes-video/__init__.py"))
-    assert cand, "找不到 agnes-video/__init__.py（既不在 plugins/agnes-video/，也不在 plugins/*/agnes-video/）"
-    spec_path = cand[0]
+assert spec_path.is_file(), f"缺 {spec_path}；旧分类布局已废弃，按 §6 删掉重装"
 spec = importlib.util.spec_from_file_location("p", spec_path)
 mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
 
@@ -186,9 +191,11 @@ class Ctx:  # 假 ctx：只收集注册结果，不碰真注册表
         raise AssertionError(f"插件调用了未预期的 ctx.{item}()")
 
 ctx = Ctx(); mod.register(ctx)
+SPECS = [("agnes-video", "Agnes AI (Intl)", "AGNES_API_KEY", "https://apihub.agnes-ai.com/v1"),
+         ("agnes-cn-video", "Agnes AI (CN)", "AGNES_CN_API_KEY", "https://api.agnes-ai.cn/v1")]
 by = {p.name: p for p in ctx.got if p is not None}
-assert set(by) == {n for n, *_ in [("agnes-video", "Agnes AI (Intl)", "AGNES_API_KEY", "https://apihub.agnes-ai.com/v1"), ("agnes-cn-video", "Agnes AI (CN)", "AGNES_CN_API_KEY", "https://api.agnes-ai.cn/v1")]}, f"注册到的 provider={sorted(by)}"
-for name, display, env, base in [("agnes-video", "Agnes AI (Intl)", "AGNES_API_KEY", "https://apihub.agnes-ai.com/v1"), ("agnes-cn-video", "Agnes AI (CN)", "AGNES_CN_API_KEY", "https://api.agnes-ai.cn/v1")]:
+assert set(by) == {s[0] for s in SPECS}, f"注册到的 provider={sorted(by)}"
+for name, display, env, base in SPECS:
     p = by[name]
     assert p.display_name == display, f"{name} display_name={p.display_name}"
     assert p.ENV_VAR == env, f"{name} ENV_VAR={p.ENV_VAR}"
@@ -196,6 +203,7 @@ for name, display, env, base in [("agnes-video", "Agnes AI (Intl)", "AGNES_API_K
     k = [e["key"] for e in p.get_setup_schema()["env_vars"]]
     assert k == [env], f"{name} setup_schema key={k}"
     print(f"  ✅ {name}: {p.API_BASE}  env={env}  models={[m['id'] for m in p.list_models()]}")
+    assert {m["id"] for m in p.list_models()} == {"agnes-video-2.5", "agnes-video-2.5-flash"}, f"{name} models 与文档不一致"
 print("OK: 两个 provider 均注册，base_url / env / 模型清单与文档一致")
 PYEOF
 ```
@@ -206,7 +214,7 @@ PYEOF
 ### 5.3 重启后确认（等用户确认已重启再跑）
 
 ```bash
-hermes plugins list | grep -i agnes-video      # 期望 Status = enabled，Version = 1.3.2
+重启后重跑 §5.1 第 1 行，确认仍是 `Status = enabled`、`Version = 1.3.2`。
 ```
 
 
@@ -214,12 +222,12 @@ hermes plugins list | grep -i agnes-video      # 期望 Status = enabled，Versi
 
 | 症状 | 原因 | 处理 |
 |---|---|---|
-| `hermes plugins list` 里**根本没有** `agnes-video` | 没装进去 / 目录名不对 | 确认 `$HH/plugins/agnes-video/plugin.yaml` 存在；目录名必须是 `agnes-video`（不是 `video_gen/agnes-video`） |
-| 显示 `disabled` 或缺 `enabled` | 白名单没写 | `hermes plugins enable agnes-video`（`config.yaml` 是安全敏感文件，**不要**手工改，用 CLI） |
-| 显示 `requires hermes >=0.21.6, running X.Y.Z` + `0 tool(s), 0 hook(s)` | 版本门控**干净跳过**（无 traceback） | 升级 Hermes；或按 §3.1 装匹配的旧版本插件 |
-| `doctor` 报 `import` 失败 | 依赖符号变动 / 包不完整 | 贴出报错全文；确认 ``agent.video_gen_provider` 的 `VideoGenProvider` 及 `ctx.register_video_gen_provider` 在 v0.21.6 起存在` |
-| 重启后验收 §5.2 过了、但功能仍不可用 | key 没填 / 填错站点 | 回 §3.3 检查（只查非空，别打印值）；确认 `只用一家时另一把留空即可（另一个 provider 会 `is_available() == False`，但不影响这个）` |
-| 装完目录在 `plugins/video_gen/agnes-video/` 而不是 `plugins/agnes-video/` | 装法错了（手抄路径没扁平化） | 移正：`mv "$HH/plugins/video_gen/agnes-video" ...` 不适用——**删掉重装**（§3.1 或 §3.2 目标名写对） |
+| `hermes plugins list` 里**根本没有** `agnes-video` | 没装进去 / 目录名不对 | 确认 `$HH/plugins/agnes-video/plugin.yaml` 存在；目录名必须是 `agnes-video`（旧的分类布局已废弃，装错就删掉重装） |
+| 显示 `disabled` 或缺 `enabled` | 白名单没写 | `hermes plugins enable agnes-video`（只动白名单，别手工编辑整个 `config.yaml`） |
+| 显示 `requires hermes >=0.21.6, running X.Y.Z` + `0 tool(s), 0 hook(s)` | 版本门控**干净跳过**（无 traceback）。注意：正常安装同样是 `0 tool(s)/0 hook(s)`，判定门控只看是否出现 `requires hermes …` 这一行 | 升级 Hermes；或按 §3.1 装匹配的旧版本插件 |
+| `doctor` 报 `import` 失败 | 依赖符号变动 / 包不完整 | 贴出报错全文；确认 `agent.video_gen_provider` 的 `VideoGenProvider` 与 `ctx.register_video_gen_provider` 在 v0.21.6 起存在 |
+| 重启后验收 §5.2 过了、但功能仍不可用 | key 没填 / 填错站点 | 回 §3.3 检查（只查非空，别打印值）；只用一家时另一把留空即可，另一个 provider 的 is_available() 是 False，不影响当前这个 |
+| 装完目录在 `plugins/video_gen/agnes-video/`（旧布局） | 2026-11 之前的老装法，或手抄了分类路径 | 删掉重装：`hermes plugins remove agnes-video` 后按 §3.1 装；新装一律落在 `plugins/agnes-video/` |
 
 ## 7. 卸载 / 更新
 
@@ -229,8 +237,8 @@ hermes plugins disable agnes-video     # 停用（不删文件）
 hermes plugins remove  agnes-video     # 连目录一起删
 ```
 
-本插件**不产生任何数据文件**，所以 `remove` 没有需要保留的东西。
-（注意用**插件名** `agnes-video`；`agnes-video` / `agnes-cn-video` 是 **provider id**，出现在 `config.yaml` 的 `video_gen.provider` 里，别混。）
+本插件不建数据库、不写状态文件；生成的视频缓存在 `$HH/cache/generated/videos/`，`remove` 不会删它们 —— 需要时手工清理该目录。
+（`hermes plugins *` 用**插件名** `agnes-video`；`video_gen.provider` 用 **provider id** `agnes-video`（与插件同名）或 `agnes-cn-video`。）
 
 > `update` 同时就是"检查更新"：有新版会打印 `Re-installed from <源>: 旧..新`，没有则 `already up to date`。
 > ⚠️ 只在**按 §3.1 用 `install` 装的**上面有效；**§3.2 手工复制**的没有装源记录，`update` 会拒绝
@@ -251,17 +259,17 @@ hermes plugins remove  agnes-video     # 连目录一起删
 
 ## 附录 A：文件清单与校验和
 
-安装完在 `$HH/plugins/agnes-video/` 下应恰好是这 2 个文件 + 本说明书 `AGENT-INSTALL.md`（说明书不参与校验；`__pycache__/` 是运行期产物）：
+安装完在 `$HH/plugins/agnes-video/` 下应恰好是这 2 个文件 + 两份文档 `AGENT-INSTALL.md`、`CHANGELOG.md`（文档不参与校验；`__pycache__/` 是运行期产物）：
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
-| `__init__.py` | 15681 | `9d9bec8d2625d55220e47e12eb019a066a22357e5bd90b4494500b3d3ed56c9b` |
-| `plugin.yaml` | 919 | `9bde540a33205e6b19f00400e7fa8358678b8a837fe54a7b8628583333b97e8a` |
+| `__init__.py` | 15822 | `8a4c8c10eba2267d1c159cacc8dd9f35975c03753b12857f1f458fd7bfd7e4d0` |
+| `plugin.yaml` | 939 | `1305238ddee9ae14668e1e32919cc679929d4b973181ed5efedf06c261495cf1` |
 
 自查（可选）：
 
 ```bash
-cd "$HH/plugins/agnes-video" && find . -type f -not -name 'AGENT-INSTALL.md' -not -path '*__pycache__*' -print0 | xargs -0 sha256sum | sort
+cd "$HH/plugins/agnes-video" && find . -type f -not -name 'AGENT-INSTALL.md' -not -name 'CHANGELOG.md' -not -path '*__pycache__*' -print0 | xargs -0 sha256sum | sort
 ```
 
 ---
@@ -272,7 +280,7 @@ cd "$HH/plugins/agnes-video" && find . -type f -not -name 'AGENT-INSTALL.md' -no
 the bundled `opencode-zen`): `agnes-video` (international, `AGNES_API_KEY`) and `agnes-cn-video` (domestic, `AGNES_CN_API_KEY`). Hermes has no variant/sub-selection
 concept, so they appear as **two side-by-side entries**, not as a sub-choice.
 
-Install with `hermes plugins install linkaixiang4883/hermes-plugins/video_gen/agnes-video --enable`, put the API
+Install with `hermes plugins install linkaixiang4883/hermes-plugins/agnes-video --enable`, put the API
 key(s) in `<HERMES_HOME>/.env` (AGNES_API_KEY / AGNES_CN_API_KEY; only one is required if you use a single region),
 then **restart the hosting process** (desktop app / `hermes dashboard` / `gateway run`) — the provider
 registry is discovered once per process. Verify with `hermes plugins doctor`, plus the inline probe in

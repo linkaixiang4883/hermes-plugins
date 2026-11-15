@@ -107,7 +107,7 @@ agnes_intl = AgnesProfile(
 
 agnes_cn = AgnesProfile(
     name="agnes-cn",
-    # 历史别名：这个 provider 早先是独立插件 ``agnes-ai``，改名后保留别名以兼容旧配置
+    # 历史别名：国内站这一支早先是独立插件 ``agnes-cn``（v1.3.3），1.1.0 合并进本插件；``agnes-ai`` / ``agnes_ai`` / ``sapiens`` 是更早期配置里出现过的 provider id，保留为别名以免旧配置失效
     aliases=("agnes-ai", "agnes_ai", "sapiens"),
     display_name="Agnes AI (CN)",
     description="Agnes AI CN domestic endpoint (Sapiens AI) — agnes-3.0-flash / agnes-2.5-flash (512K ctx, 免费) + agnes-2.5-pro (1M ctx, reasoning)；vision & tools",
@@ -142,8 +142,9 @@ except Exception:
 # ── 核心注册表补丁（技术债，待上游提供正式面后移除）────────────────────
 # 背景：Hermes v0.19 的 resolve_provider_full() / validate_requested_model() 曾只读
 # HERMES_OVERLAYS 与 _PROVIDER_MODELS 两个模块级 dict，plugin 注册系统不碰它们。
-# 官方文档称 register_provider(ProviderProfile) 已自动接好这些集成点，但
-# _PROVIDER_MODELS 仍被静态目录逻辑（hermes_cli/models.py）使用，故暂时两边都注入。
+# 技术债（2026-11-16 复核）：v0.23.1 已提供正式面 —— ProviderProfile.static_models（并入目录）
+# 与 ProviderProfile.provider_overlay（并入 hermes_overlays()）；本段直接注入是 v0.19 时代的老
+# workaround，validate 会按 catalog rule 9 报 ⚠ private core imports，待对比实测通过后移除。
 def _inject_into_hermes_registries() -> None:
     for profile in _PROFILES:
         # 1. HERMES_OVERLAYS — resolve_provider_full() 认得这个 provider

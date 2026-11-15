@@ -1,7 +1,7 @@
 """opencode-go-usage —— agent 半（占位，无任何工具/钩子）。
 
 本插件的实际功能在另外两个半边：
-  · dashboard/plugin_api.py —— 后端路由 /api/plugins/opencode-go-usage/usage
+  · dashboard/plugin_api.py —— 后端路由 /api/plugins/opencode-go-usage/{usage,gate}
   · desktop/plugin.js       —— 桌面状态栏芯片
 
 这个空 ``register(ctx)`` 的意义：让插件在 CLI/网关侧是一个形态完整的

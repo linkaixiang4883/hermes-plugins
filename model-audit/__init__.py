@@ -2,7 +2,7 @@
 
 机制：
   · 官方 hook `post_api_request` 给出 session/model/provider/时间/用量，但**不含响应头**；
-  · 上游真相在响应头（opencode-go: x-opencode-upstream-model-id）→ 借核心自己的 httpx 响应钩子：
+  · 上游真相在响应头（LiteLLM 系 x-litellm-model-id；opencode-go 曾发 x-opencode-upstream-model-id，2026-10-19 起已撤回）→ 借核心自己的 httpx 响应钩子：
     对 `agent.served_model.install_served_model_capture` 做一层 fail-open 包装，响应到达时把白名单头
     按 **session_id** 存进本模块的槽位（`_LAST_BY_SESSION`），hook 触发时按 payload 的 session_id 取回
     （**一次性消费 + 时间窗校验**，防止陈旧值错配）；
@@ -12,7 +12,7 @@
     `_CLIENT_AGENT[httpx 客户端] → agent`（每次 install 都刷新），再从它读 `session_id` 定槽。
   · **只写原始事实**（不写认可状态、不做自动清理）；
   · 任何一步失败都只降级为「无信号」，绝不影响 agent 主循环；
-  · 诊断：响应/落库各写一行 JSONL 到 `data/capture-debug.jsonl`（超限自动截断），排「无信号」时先看它。
+  · 诊断：响应/落库各写一行 JSONL 到 `$HH/plugin-data/model-audit/capture-debug.jsonl`（与 DB 同目录）（超限自动截断），排「无信号」时先看它。
 """
 from __future__ import annotations
 

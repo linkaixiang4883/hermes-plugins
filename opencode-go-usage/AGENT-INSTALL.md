@@ -6,7 +6,7 @@
 
 | 项 | 值 |
 |---|---|
-| 包版本 | `1.2.2`（与源插件逐字节一致，sha256 见附录 A） |
+| 包版本 | `1.2.2`（文件校验和以附录 A 为准） |
 | 安装源 | 本文件所在的目录 = 插件树本身，同时是 **Git 仓库的子目录**（`hermes plugins install` 可直接装，见 §3.1）；本说明书随插件一起装进去 |
 | 安装目标 | `<HERMES_HOME>/plugins/opencode-go-usage/` |
 | 派生目标（App 自动写，**不要手改**） | `<HERMES_HOME>/desktop-plugins/opencode-go-usage/` |
@@ -26,7 +26,7 @@
 ## 1. 它是什么 / 它不做什么
 
 **是什么**：Hermes 桌面端的状态栏芯片插件，显示你当前所在**编码套餐**的用量百分比
-（滚动 5h / 周 / 月三个窗口），点击展开详情面板。支持两家：**OpenCode Go**（芯片前缀 `Go`，
+（滚动 5h / 周 / 月三个窗口；Command Code 的月窗可能缺失，见下），点击展开详情面板。支持两家：**OpenCode Go**（芯片前缀 `Go`，
 端点 `/zen/go/v1/usage`）与 **Command Code GOAT / Pro / Max**（芯片前缀 `GOAT`，
 端点 `/alpha/billing/credits` + `/alpha/billing/subscriptions`）。它是一个"统一包"——三半合一：
 
@@ -62,8 +62,8 @@ hermes config env-path      # 例：C:\Users\<you>\AppData\Local\hermes\.env
 
 | # | 条件 | 怎么核对 | 不满足怎么办 |
 |---|---|---|---|
-| 1 | Hermes **桌面端 App** 存在（只有 CLI/Gateway 不行，芯片长在 App 里） | 能启动 App；`hermes --version` 应 ≥ 0.21（本包在 v0.21.3 / 2026.9.14 实测通过） | 先装/升级桌面端 |
-| 2 | **至少一家**套餐的 API key 已配进 Hermes：OpenCode Go 或 Command Code（GOAT/Pro/Max） | Go：`hermes auth list opencode-go`（**只显示标签/状态，不显示密钥**）→ 至少 1 条 `api_key`；或 `$HH/.env` 里有 `OPENCODE_GO_API_KEY=`。Command Code：`$HH/.env` 里有 `COMMANDCODE_API_KEY=`（或 `COMMAND_CODE_API_KEY=`） | 让用户自己去后台建 key 并写进 `.env` / 凭证池。**不要向用户索要 key 明文，也不要自己写 key** |
+| 1 | Hermes **桌面端 App** 存在（只有 CLI/Gateway 不行，芯片长在 App 里） | 能启动 App；`hermes --version` 应 ≥ **0.21.6**（= `plugin.yaml` 的 `requires_hermes`；低于它 Hermes 会「干净跳过」本插件，不报错、也不生效） | 先装/升级桌面端 |
+| 2 | **至少一家**套餐的 API key 已配进 Hermes：OpenCode Go 或 Command Code（GOAT/Pro/Max） | Go：`hermes auth list opencode-go`（**只显示标签/状态，不显示密钥**）→ 至少 1 条 `api_key`；或 `$HH/.env` 里有 `OPENCODE_GO_API_KEY=`。Command Code：`auth.json` 凭证池里有 `commandcode` 池键（`hermes auth list` 可看标签/状态），或 `$HH/.env` 里有 `COMMANDCODE_API_KEY=`（或 `COMMAND_CODE_API_KEY=`） | 让用户自己去后台建 key 并写进 `.env` / 凭证池。**不要向用户索要 key 明文，也不要自己写 key** |
 | 3 | App 能把 `desktop/` 半提升到 app 级目录（v0.21+ 的"统一包"机制；老版本没有） | 看 `$HH/desktop-plugins/` 是否存在，或装完看 §6.3 | 走 §5.2 的手动落地方案 |
 | 4 | 能写 `$HH` 且能重启 App | 常规用户目录，一般没问题 | 权限问题交给用户 |
 
@@ -80,7 +80,7 @@ hermes config env-path      # 例：C:\Users\<you>\AppData\Local\hermes\.env
 
 ### 3.1 来源 A（推荐）：一条命令从 Git 源安装
 
-**从 GitHub（或任何 git 托管）**：
+**从 GitHub**（其它 git 托管请用完整 URL，不要用 `owner/repo` 简写）：
 
 ```bash
 hermes plugins install linkaixiang4883/hermes-plugins/opencode-go-usage --enable     # owner/repo 简写；也接受完整 URL / GitHub tree URL
@@ -180,7 +180,7 @@ hermes plugins doctor opencode-go-usage              # 期望 "OK: runtime disco
 
 App 已经开着、只是不想重开时的替代路径（能救活桌面半，救不了后端半）：
 **设置 → Plugins** 打开这一页（会触发一次 reconcile + rescan，把 `desktop/` 半复制过去并重载），
-或命令面板搜 **Reload desktop plugins**。后端半仍然需要重启。
+ 或命令面板搜 **Reload desktop plugins**。
 
 ---
 
@@ -202,7 +202,7 @@ App 已经开着、只是不想重开时的替代路径（能救活桌面半，�
 核对办法：
 
 ```bash
-hermes model list 2>/dev/null | head -20      # 或直接问用户/看 config.yaml 的 model 段
+hermes config get model.provider      # 打印当前默认 provider（点号键受支持）；也可直接问用户或看 config.yaml 的 model 段
 ```
 
 若用户的 provider 名**不在上面两行里**（比如自定义了别的名字），改一行即可——编辑
@@ -228,7 +228,7 @@ App 启动 →（a）后端进程按 `plugins.enabled` 导入后端半；（b）
 注意两点，并告知用户：
 
 - 手工复制的目录**没有** `.hermes-package.json` 标记 → 属于"用户自己装的独立插件"，
-  App 永不覆盖它，**以后升级要手动重拷**。
+  手工复制的目录**没有** `.hermes-package.json` 标记：若它与源逐字节一致，App 下次 reconcile 会就地「认领」（补标记）并转为自动同步；一旦两边不一致就再也不会被覆盖，升级要手动重拷。
 - 同样地，源目录里的 `desktop/` 再更新也不会自动同步到这个手拷副本。
 
 ---
@@ -259,7 +259,7 @@ HH="$(dirname "$(hermes config path)")"
 FAILURES: 无 —— 全部通过
 ```
 
-并且 ① / ①b 两段会分别打印两家套餐的三个窗口百分比，例如 `[1, 0, 69]`：
+ 并且 ① 打印 Go 的三个窗口百分比；①b 打印 GOAT 的两到三个（`planId` 查不到套餐表或订阅接口失败时只有 5h/周），例如 `[1, 0, 69]`：
 
 ```
    windows: [{"id":"rolling","percent":1,...},{"id":"weekly","percent":0,...},{"id":"monthly","percent":69,...}]
@@ -304,7 +304,7 @@ test -f "$(dirname "$(hermes config path)")/desktop-plugins/opencode-go-usage/pl
 1. 把模型切到一个 **OpenCode Go** 的模型 → 状态栏右侧出现 `Go [████░░░░░░] NN%`；
 2. 再切到一个 **Command Code**（provider 名 `commandcode`）的模型 → 芯片变成 `GOAT [██░░░░░░░░] NN%`；
 3. 颜色：<50% 绿 / 50–74% 黄 / ≥75% 红；
-4. 点一下芯片 → 弹出面板：三个窗口（滚动 5h / 周 / 月）+ 各自重置倒计时 + 池内 key 数
+4. 点一下芯片 → 弹出面板：窗口列表（Go 恒为 滚动 5h / 周 / 月；GOAT 的月窗在 `planId` 未知或订阅接口失败时省略）+ 有 `resetsAt` 的窗口才显示重置倒计时（未开始的窗口没有倒计时，属正常）+ 池内 key 数
    （GOAT 的月窗口重置时间 = 账单周期末）；
 5. 再把模型切到 Zen 或别家 → 芯片**消失**（门控生效，属正常）；
 6. 面板底部「更新于 hh:mm」的时间戳应在刷新后变化。
@@ -319,12 +319,11 @@ test -f "$(dirname "$(hermes config path)")/desktop-plugins/opencode-go-usage/pl
 |---|---|---|
 | 芯片**完全不出现** | 当前模型 provider 不在注册表的 `model_providers` 里（门控判定不命中） | §4：把用户的 provider 名加进 `model_providers` 后重启 App；或先切一个 Go 模型验证 |
 | 芯片不出现，且切到 Go 模型也不出现 | 后端半没被导入（`plugins.enabled` 没生效 / 没重启）；或桌面半没落地 | §3.3 核对 `hermes plugins list`；§6.3 核对桌面半文件；然后重启 App |
-| 芯片显示 `Go —`，面板写"找不到 API key" | 凭证池里没有 opencode-go 的 key，`.env` 里也没有 `OPENCODE_GO_API_KEY` | §2.1 第 2 条（key 由用户自己配，你别碰明文） |
-| 芯片显示 `GOAT —`，面板写"找不到 API key" | `.env` 里没有 `COMMANDCODE_API_KEY`（或 `COMMAND_CODE_API_KEY`） | §2.1 第 2 条（key 由用户自己配） |
+| 芯片显示 `Go —`，面板写"找不到 API key" | 凭证池里没有 opencode-go 的 key，`.env` 里也没有 `OPENCODE_GO_API_KEY` | §2.1 第 2 条 |
+| 芯片显示 `GOAT —`，面板写"找不到 API key" | `.env` 里没有 `COMMANDCODE_API_KEY`（或 `COMMAND_CODE_API_KEY`），凭证池也没有 `commandcode` 池键 | §2.1 第 2 条 |
 | 面板写"key 被拒（401）" | 那把 key 无效/已删除 | 让用户换 key；`hermes auth list opencode-go` 看池里有哪几把 |
 | 面板写"该 key 没有对应订阅（403）" | Go：该 key 所属 workspace 没有 Go 订阅，或上游抖动把 403 冒出来了。Command Code：403 = `upgrade_required`（Go 档是唯一没有 API 访问权的档，GOAT/Pro/Max 才有） | Go：先让用户确认订阅；上游抖动会让 Hermes 把 key 冷却 1h，可用 `hermes auth reset opencode-go` 清掉再试。Command Code：让用户确认套餐档位 |
 | 面板写"后端不可达 — 确认已加入 plugins.enabled 并重启后端" | 就是字面意思：白名单或重启没做 | §3.3 + §3.4 |
-| 面板写"读取凭证池（auth.json）失败" | `auth.json` 正被并发写（Hermes 会重试一次） | 让用户再刷一次；持续失败再看文件权限 |
 | 面板写网络错误/超时 | 出网被拦（企业代理/防火墙） | 插件后端用 `urllib` 直连上游（opencode.ai / api.commandcode.ai）；确需代理就设 `HTTPS_PROXY` 环境变量后重启 App。**别把 urllib 的默认 UA 改掉**——默认 UA 会被 Cloudflare 挡成 `403 error code: 1010`，本插件已带专用 UA |
 | 面板里"已顺延到下一把可用 key" | 正常行为：主力 key 401/403，自动改用池里下一把 | 不用处理；想切回主力：`hermes auth reset opencode-go` |
 | App 报 "Plugin opencode-go-usage failed to load" | 桌面半文件损坏/被手改 | 从本目录重拷 `desktop/plugin.js`，再 Reload desktop plugins |
@@ -384,22 +383,22 @@ App 下次 reconcile 会自动重拷桌面半（不需要你手改 `desktop-plug
 
 ## 附录 A：文件清单与校验和
 
-安装完在 `$HH/plugins/opencode-go-usage/` 下应恰好是这 7 个文件 + 本说明书 `AGENT-INSTALL.md`（说明书不参与校验；`__pycache__/` 是运行期产物，可出现）：
+安装完在 `$HH/plugins/opencode-go-usage/` 下应恰好是这 7 个文件 + 两份文档 `AGENT-INSTALL.md`、`CHANGELOG.md`（文档不参与校验；`__pycache__/` 是运行期产物，可出现）：
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
 | `plugin.yaml` | 907 | `5987ba43b38611644e227b1091f3fafd9042cc51bbee316aceade951436df5d0` |
-| `__init__.py` | 711 | `4116f16b270fb8ebdf505c19f3f2b9077d922d64845abf4c4e4d842da564a8df` |
+| `__init__.py` | 718 | `e80ecf90e5f83917ff4151017a4dfa3634b361afa62860dbf8765f782a8a0258` |
 | `dashboard/manifest.json` | 406 | `ceb57341df5f31e46521c5c522d6d37293fa2b2bd11adc0d389708e9e7f46c2c` |
-| `dashboard/plugin_api.py` | 30530 | `658c2c6f3d56069788342f75a04c3a1a8417c47478203db05a856e18d07f92db` |
+| `dashboard/plugin_api.py` | 30530 | `db1104c8e984a2fafe35f8b11b55317b6c5ae09efe48d3e9b1eff23f6ad0391a` |
 | `dashboard/dist/index.js` | 304 | `45685cfc0675ce36620d347ba1a9026a8dd691fdcb52087c5f7671a76fa5a6a6` |
-| `desktop/plugin.js` | 20013 | `59488e8525897468746ddb2d7ec055faef3a8e12da7ccd89bb0b5924041c6944` |
-| `tests/test_plugin_api.py` | 21405 | `1b31e6bbe8f1c65b116cc1ee497bd125e572f95e648b3ead339e9838029e80b5` |
+| `desktop/plugin.js` | 20023 | `1ef3bd26fd17e4c478f50d5e5225a8f0fd8f454ce4b0667b3cf9785234800016` |
+| `tests/test_plugin_api.py` | 21731 | `ae6dc8f046de5fbaaaa0e088cc637ac7254159975644543260a4e7ad8b40f427` |
 
 自查（可选）：
 
 ```bash
-cd "$HH/plugins/opencode-go-usage" && find . -type f -not -name 'AGENT-INSTALL.md' -not -path '*__pycache__*' -print0 | xargs -0 sha256sum | sort
+cd "$HH/plugins/opencode-go-usage" && find . -type f -not -name 'AGENT-INSTALL.md' -not -name 'CHANGELOG.md' -not -path '*__pycache__*' -print0 | xargs -0 sha256sum | sort
 ```
 
 ---

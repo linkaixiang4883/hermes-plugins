@@ -232,8 +232,9 @@ class AgnesVideoGenProvider(VideoGenProvider):
 
         # Request body follows the documented contract:
         # {model, prompt, mode, seconds, size, aspect_ratio}.
-        # height/width/num_frames/frame_rate are forbidden fields (HTTP 400),
-        # as are negative_prompt and any other undeclared keys.
+        # height/width/num_frames/frame_rate are forbidden fields (HTTP 400);
+        # negative_prompt is dropped (upstream has no such field);
+        # seed 是未写入契约的可选字段（工具层可能传下来），原样带上，上游拒收会返回 invalid_argument。
         body: Dict[str, Any] = {
             "model": model_id,
             "prompt": prompt,

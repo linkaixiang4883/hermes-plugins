@@ -11,9 +11,9 @@
 | 安装目标 | `<HERMES_HOME>/plugins/model-audit/` |
 | 派生目标 | 无。本插件**没有桌面半**（不在桌面端 App 里加 UI）；页面由仪表盘的插件机制直接加载 |
 | 要改的配置 | `<HERMES_HOME>/config.yaml` 的 `plugins.enabled`（用 CLI 改，别手编 YAML） |
-| 外部依赖 | 无。只用 Hermes 自带 venv 里的 fastapi + Python 标准库，不用 pip、不用 git、不用联网安装 |
+| 外部依赖 | 运行时无（只用 Hermes 自带 venv 里的 fastapi + Python 标准库）。**安装时**：Git 安装需要系统 `git` 与网络（§3.1）；离线或无 `git` 走 §3.2 手工复制 |
 | 依赖的上游机制 | 插件 hook `post_api_request`（**公开契约内**）+ 内部符号 `agent.served_model.install_served_model_capture`（**契约外**，fail-open：符号缺失只降级为「无信号」，不报错、不影响主流程） |
-| 数据位置 | `$HH/plugin-data/model-audit/model_audit.db` —— **0.4.0 起脱离插件树**（见 §2.2、§7） |
+| 数据位置 | `$HH/plugin-data/model-audit/model_audit.db` —— **0.4.0 起脱离插件树**（见 §3.2 目录结构与 §7 卸载/更新） |
 | 需要人做的事 | ① 重启一次承载仪表盘的后端（桌面端 App / `hermes dashboard`）；② 在页面上目测一眼（§5.5） |
 | 预计耗时 | 5 分钟 |
 
@@ -31,7 +31,7 @@
 
 **是什么**：Hermes **仪表盘**的「模型对账」插件。逐次记录每次**主对话** API 调用的
 「请求 alias → 上游实际返回的 model / 路由端点」（真值取自**响应头**），在 **Model Audit** 页对账：
-`✅ 一致 / 🟢 已认可 / ❌ 不匹配 / ⚠️ 新路由 / ○ 仅体证 / ◌ 无自证 / — 无信号`。
+`✅ 一致 / 🟢 已认可 / ❌ 不匹配 / ⚠️ 新路由 / ⚠️ 体证不同 / ○ 仅体证 / ◌ 无自证 / — 无信号`。
 用途：发现中转**掉包 / 悄悄降级 / 换路由**；出问题时页面里留着 trace id（`x-opencode-log-id` / `x-trace-id`），
 可以直接找厂商投诉定位。
 
@@ -74,12 +74,11 @@ hermes config env-path      # 例：C:\Users\<you>\AppData\Local\hermes\.env
 | # | 条件 | 怎么核对 | 不满足怎么办 |
 |---|---|---|---|
 | 1 | Hermes Agent **v0.21.6+**（见 §2.2） | `hermes --version`（本包在 **v0.22.2** 端到端实测通过；v0.21.6 是所依赖符号的最早正式 release） | 先升级 Hermes 再装。版本不对会被清单硬门**干净拦下**（`requires hermes >=0.21.6, running …`），不是崩溃 |
-| 2 | **核心采集符号存在** | Windows：`& "$HH\hermes-agent\venv\Scripts\python.exe" -c "from agent import served_model as sm; print(callable(getattr(sm,'install_served_model_capture',None)))"`；macOS/Linux：`"$HH/hermes-agent/venv/bin/python" -c "…同上…"` → 期望 `True` | `False`：插件能装、页面能开，但**采不到数**（全「—无信号」）→ 先升级 Hermes |
+| 2 | **核心采集符号存在** | Windows：`& "$HH\hermes-agent\venv\Scripts\python.exe" -c "from agent import served_model as sm; print(callable(getattr(sm,'install_served_model_capture',None)))"`；macOS/Linux：`"$HH/hermes-agent/venv/bin/python" -c "from agent import served_model as sm; print(callable(getattr(sm,'install_served_model_capture',None)))"` → 期望 `True` | `False`：插件能装、页面能开，但**采不到数**（全「—无信号」）→ 先升级 Hermes |
 | 3 | 会话库存在（否则标题列只显示会话 id） | `test -f "$HH/state.db" && echo yes`（Windows：`Test-Path "$HH\state.db"`） | 可继续；标题列会是空/退化 |
 | 4 | 有仪表盘入口（页面长在那里） | `hermes dashboard --status`；没在跑就 `hermes dashboard`（默认 <http://127.0.0.1:9119/>） | 先请用户把仪表盘跑起来；数据照采，但看不到页面 |
 | 5 | 能写 `$HH` 且能重启仪表盘/App | 常规用户目录，一般没问题 | 权限问题交给用户 |
 
-> 不需要任何 API key——插件读的是本地已有的调用痕迹（响应头 + 会话库标题）。
 
 ### 2.2 版本对应关系（哪个 Hermes 装哪个插件版本）
 
@@ -93,7 +92,7 @@ requires_hermes: ">=0.21.6"
   `hermes plugins list` / `doctor` 里（`requires hermes >=0.21.6, running X.Y.Z`）——
   不会出现「装上了但满屏无信号」这种糊涂状态。
 - **依据**：`v0.21.6` 是本仓库最早的**正式** release tag（`v0.21.3/4/5` 从未正式发布），
-  且本包依赖的每个符号在该 tag 上逐一做过**存在性验证**；全量端到端实测版本是 **v0.22.2**。
+   且本包依赖的每个符号在该 tag 上逐一做过**存在性验证**；全量端到端实测版本是 v0.22.2，v0.23.1 于 2026-11-11 复核通过（见 `plugin.yaml` 注释）。
 - **版本配对由发布方掌握**：每个插件 release（git tag）声明自己需要的 `requires_hermes`；
   使用者按需选 release。升级插件**不会**改动任何 Hermes 组件，只做拦截与提示。
 - **装指定版本**：`hermes plugins install linkaixiang4883/hermes-plugins/model-audit --ref <40 位 commit SHA>`
@@ -133,7 +132,7 @@ hermes plugins install "file://<仓库根目录绝对路径>#model-audit" --enab
 
 命令做的事：clone 到临时目录 → 取 `model-audit/` 子目录 → 装进 `$HH/plugins/model-audit/` → 写 `plugins.enabled`
 → 记录来源（以后 `hermes plugins update model-audit` 可更新）。
-成功标志（输出里找这两行）：`✓ Plugin model-audit enabled.` 和 `Restart the gateway for the plugin to take effect`。
+ 成功标志：`✓ Plugin model-audit enabled.`（必需）。`Restart the gateway for the plugin to take effect` 只在有 gateway 时可能出现，缺失不算失败；重启按 §3.4 自己判断。
 
 - 从 GitHub 下载的 zip、或拷贝时漏掉 `.git` 时，先补个仓库再装：
   `cd <仓库根目录> && git init -q && git add -A && git commit -qm "vendor snapshot"`。
@@ -181,7 +180,7 @@ find "$HH/plugins/model-audit" -type f
 ```
 
 **幂等**：目标已存在就覆盖（`Copy-Item -Force` / `cp -R`）——更新同版本/新版本都用同一条命令。
-`data/`（SQLite）与 `__pycache__/` 不在包里，是运行期产物，**别删数据目录**（删了=清空历史记录）。
+ `__pycache__/` 不在包里，是运行期产物；**0.4.0 起 SQLite 已移出插件树**（`$HH/plugin-data/model-audit/model_audit.db`），删插件目录不会丢历史——要清数据请删那个目录。
 
 ### 3.3 启用插件（写 `plugins.enabled` 白名单）
 
@@ -198,7 +197,7 @@ hermes plugins enable model-audit
 
 ```bash
 hermes plugins list | grep -i model-audit      # 期望 Status = enabled，Version = 0.4.2
-hermes plugins doctor model-audit              # 读法见 §5.2；0.4.0 起 WinError 32 已消失（见 §7）
+hermes plugins doctor model-audit              # 读法见 §5.2（≤0.3.0 才会报 WinError 32，见 §6）
 ```
 
 ### 3.4 重启，然后给用户一句话
@@ -283,7 +282,7 @@ hermes plugins doctor model-audit
   registrations: 0 tool(s), 1 hook(s)
 ```
 
-**0.4.0 起这条已消失**：库不再放在插件树内（`WinError 32` 的根因是 doctor 拷不动**正被插件打开**的 SQLite）。
+（doctor 报 `WinError 32` 是 **≤0.3.0** 的症状：库在插件树内被自己打开；0.4.0 起库已移出，见 §6。`update`/重装时的文件占用是另一回事，见 §6。）
 升级后若仍看到它，说明有进程还开着老位置的文件 → 确认已**完全重启**，并检查
 `$HH/plugins/model-audit/data/` 是否只剩 `*.migrated` 退场文件（见 §7）。
 
@@ -321,7 +320,7 @@ HH="$(dirname "$(hermes config path)")"
 
 ```
 calls: (2708, 1790748617.796811)
-meta : {'retention_days': '90', 'capture_installed': '1790740076.0470893', 'patch_ok': '1', 'hermes_version': '0.21.5', ...}
+ meta : {'retention_days': '90', 'capture_installed': '1790740076.0470893', 'patch_ok': '1', 'hermes_version': '0.23.1', ...}   # 样本取自 v0.23.1 实测
 ```
 
 1. `meta.patch_ok == '1'`（`0` = 采集钩子没装上 → 重启 App/dashboard 再来；还是 0 就看 §2.1 第 2 条）；
@@ -332,7 +331,7 @@ meta : {'retention_days': '90', 'capture_installed': '1790740076.0470893', 'patc
 告诉用户，逐条确认：
 
 1. 仪表盘左侧导航 **Analytics 之后**有「**Model Audit**」，点开不报错；
-2. 顶部汇总卡有数字（调用 / 一致 / 已认可 / 不匹配 / 新路由 / 无自证 / 无信号），**各卡之和 = 调用总数**；
+2. 顶部汇总卡有数字（近 N 天调用 / 一致 / 已认可 / 不匹配 / 新路由 / 体证不同 / 仅体证 / 无自证 / 无信号）；除「近 N 天调用」外，其余各卡之和 = 该数；
 3. 明细表有行：时间 / 会话标题 / provider / alias / 上游 model / 端点 / 状态 / 耗时；
 4. 刚发的那条消息出现在表里（顶部）；
 5. 任意一条 `⚠️新路由` / `❌不匹配` 的行点「**认可**」→ 变绿 `🟢已认可`，且不再出现在"只看异常"里；
@@ -355,7 +354,7 @@ meta : {'retention_days': '90', 'capture_installed': '1790740076.0470893', 'patc
 | 页面能开但**全是 0 / 空表**，接口带 `initialized: false` | **正常**：这台设备还没有任何 agent 进程跑过（schema 由 agent 半 = 服务端创建），本来就没有数据可显示 | 启动一次桌面端 / 网关 / CLI（agent 半会建库），数据随后自动出现 |
 | 写操作（认可 / 设置 / 清理）返回 **503** | 库尚未初始化（同上：还没有 agent 进程跑过） | 先启动一次 agent 进程。这是**有意设计**：后端半（客户端）不建库，避免双写者竞态 |
 | `/rows` / `/summary` / `/approvals` 返回 **500**（仅 0.2.0 及以下） | 旧版 bug：读接口既没建库兜底、也没优雅降级 | 升级到 **0.3.0+**（0.2.1~0.2.2 的中间版本是「读接口自建空库」，0.3.0 起改为「客户端只读 + `initialized` 标记」） |
-| 满屏「— 无信号」 | ① 当前 provider 不发自证头（如 commandcode——它结构上就不发，body 里的 model 只是请求 alias 回声，不是插件故障）；② 采集钩子没装 | ① 正常，不是故障（见 §1 边界）；② 看 `data/capture-debug.jsonl` 的 `resp`/`hook` 行（哪个环节断的） |
+| 满屏「— 无信号」 | ① 当前 provider 不发自证头（如 commandcode 结构性不发、opencode-go 自 2026-10-19 起撤头，body 里的 model 只是请求 alias 回声，不是插件故障）；② 采集钩子没装 | ① 正常，不是故障（见 §1 边界）；② 看 `$HH/plugin-data/model-audit/capture-debug.jsonl`（与 DB 同目录）的 `resp`/`hook` 行（哪个环节断的） |
 | 「只看异常」里出现一堆「⚠️ 新路由」 | 上游走了不同端点（换机房/路由池是常态） | 对确认无问题的组合点「认可」/「仅模型」放行，或让维护者加进内置标准 |
 | 某行 `profile` 显示成路径 | 旧行缺 `profile_name`（老数据） | 新行正常；旧行可忽略或让维护者回填 |
 | 标题列为空 | 该会话 `title` 为 NULL（压缩产生的父会话本来就没有标题；已实现沿子会话链取） | 属正常；若**所有**行都空，查 §2.1 第 3 条 |
@@ -411,16 +410,16 @@ rm -rf "$HH/plugins/model-audit"
 
 ## 附录 A：文件清单与校验和
 
-安装完在 `$HH/plugins/model-audit/` 下应恰好是这 10 个文件 + 本说明书 `AGENT-INSTALL.md`（说明书不参与校验；`__pycache__/` 是运行期产物；`data/` 只在从 ≤0.3.0 升级时出现，且只剩 `*.migrated` 退场文件）：
+安装完在 `$HH/plugins/model-audit/` 下应恰好是这 10 个文件 + 两份文档 `AGENT-INSTALL.md`、`CHANGELOG.md`（文档不参与校验；`__pycache__/` 是运行期产物；`data/` 只在从 ≤0.3.0 升级时出现，且只剩 `*.migrated` 退场文件）：
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
 | `plugin.yaml` | 976 | `ca92ff751932760e13262bd12132aabd37237b8eee9fe0f7e6242fb379845af6` |
-| `__init__.py` | 10303 | `1a1053a65086cf36a8bc3885396147632f2725342f86e6a75555e70fdcd205e8` |
-| `model_audit_core.py` | 45904 | `bce5e262090722bab66d83a18da6f33321e26be715a5e050a32414e9c3fe35ec` |
+| `__init__.py` | 10413 | `58ecf0f6681adb140bcef56be074760bb591d2ab0cbb0c1bfa18a81eb2578e8d` |
+| `model_audit_core.py` | 45885 | `5c23a49f105f5204a6a06056fb1f50ff6aa2a15d18b8228e1289535db658a4d8` |
 | `dashboard/manifest.json` | 333 | `55332deb6834b38d2bb83887e2d700d49ef2cc246aed9c866d27df3e23137031` |
 | `dashboard/plugin_api.py` | 9331 | `cffd01817950e7d3839d4e36846799833ade2145753f8ce66fef812568e4beb3` |
-| `dashboard/dist/index.js` | 32731 | `7967772b98e885b9908042a574cdcd60a9bbb2d959c7e75e84c8b7c987271e04` |
+| `dashboard/dist/index.js` | 32745 | `5a3a169e2704904ad020db49eca62325ea1c51e5dde58fc1870ab5875795a365` |
 | `tests/test_audit_core.py` | 38462 | `6f29963243293fdef95674145fff8080f17595815996985febadfde0211f8ae3` |
 | `tests/test_agent_half.py` | 5974 | `a754eaf4f1ddb12a362aabd6cafe930ea51ea35fc5609173b9407f4c9e91c31e` |
 | `tests/test_plugin_api.py` | 14517 | `9331f246e15a808e5b2ce92909c39853af72fbd07d6b97e038230c1c6fc236f3` |
@@ -429,7 +428,7 @@ rm -rf "$HH/plugins/model-audit"
 自查（可选）：
 
 ```bash
-cd "$HH/plugins/model-audit" && find . -type f -not -name 'AGENT-INSTALL.md' -not -path '*__pycache__*' -not -path './data/*' -print0 | xargs -0 sha256sum | sort
+cd "$HH/plugins/model-audit" && find . -type f -not -name 'AGENT-INSTALL.md' -not -name 'CHANGELOG.md' -not -path '*__pycache__*' -not -path './data/*' -print0 | xargs -0 sha256sum | sort
 ```
 
 ---
@@ -453,7 +452,8 @@ Install (agent-executed):
 3. Ask the user to fully restart the dashboard-bearing backend (desktop app / `hermes dashboard`).
 4. Verify for real: run the four bundled test scripts with the bundled venv python / any node ≥ 18
    (expect `FAILED: none`), read the `manifest:` + `registrations:` lines of `hermes plugins doctor`
-   (a `WinError 32` on Windows while the plugin is live is expected, not a failure), grep the
+   (on Windows a doctor `WinError 32` is a ≤0.3.0 symptom: 0.4.0+ must not print it; an
+   `update`/reinstall `WinError 32` is a separate file-lock issue — see §6), grep the
    `Mounted plugin API routes: /api/plugins/model-audit/` log line, and confirm `meta.patch_ok = 1`
    plus a growing `calls` count with the read-only sqlite probe (§5.4).
 5. The page appears in the Hermes **dashboard** sidebar right after "Analytics". Troubleshooting: §6.

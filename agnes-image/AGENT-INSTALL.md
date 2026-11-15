@@ -5,9 +5,9 @@
 
 | 项 | 值 |
 |---|---|
-| 包版本 | `1.2.2`（与本仓库 `image_gen/agnes-image/` 当前文件逐字节一致，sha256 见附录 A） |
+| 包版本 | `1.2.2`（与本仓库 `agnes-image/` 当前文件逐字节一致，sha256 见附录 A） |
 | 安装源 | 本文件所在目录 = 插件树本身，同时是 **Git 仓库的子目录**（`hermes plugins install` 可直接装，见 §3.1） |
-| 安装目标 | `<HERMES_HOME>/plugins/agnes-image/` —— ⚠️ **会被扁平化**，**不是** `plugins/image_gen/agnes-image/` |
+| 安装目标 | `<HERMES_HOME>/plugins/agnes-image/`（目录名 = 插件名）。⚠️ 2026-11 之前的老版本装在 `plugins/image_gen/agnes-image/`，升级时删掉旧的 |
 | 插件身份 | `name: agnes-image`、`kind: backend`、声明 `requires_hermes: ">=0.21.6"` |
 | 注册的 provider | **两个**（一个插件注册两个 provider，形态同内置 `opencode-zen`）：`agnes-image`（国际站 / `AGNES_API_KEY`）与 `agnes-cn-image`（国内站 / `AGNES_CN_API_KEY`） |
 | 派生目标 | 无。没有桌面半、没有仪表盘页、不建数据库、不写任何状态文件 |
@@ -22,9 +22,8 @@
 **不做什么**（避免 agent 自己脑补）：
 
 - 不修改 Hermes 源码、不改 `config.yaml`、不动 `auth.json`。
-- 不读写任何 Hermes 内部数据库；只在 `import` 时往 `agent.model_metadata` 的上下文缓存里写几条
-  `(model, base_url) → context_window`（幂等，`save_context_length`；失败静默忽略）。
-- 不发遥测、不上传任何数据；只从环境变量读 API key，key 不打印、不落盘、不进日志。
+- 不读写任何 Hermes 内部数据库，import 时也不写任何状态。
+- 不发遥测、不上传任何数据；只从当前 profile 的 `$HH/.env` 读 key（经 `agent.secret_scope.get_secret()`，多 profile 网关下不会串到别的 profile）；key 不打印、不落盘、不进日志。
 
 > **为什么"一个插件两个 provider"**：Hermes **没有** variant / 子选择概念，多区域只能靠
 > 「一个 `register_provider()` 调多次」（provider 类插件）或「`register()` 里注册多个 provider」
@@ -46,7 +45,7 @@ HH="$(dirname "$(hermes config path)")" && echo "$HH"
 |---|---|---|---|
 | 1 | Hermes ≥ 0.21.6 | `hermes --version` | 版本号 ≥ 0.21.6（`plugin.yaml` 里有 `requires_hermes`，不满足会被**干净跳过**） |
 | 2 | `git` 可用 | `git --version` | 有输出（§3.1 需要；没有就走 §3.2 手工复制） |
-| 3 | 插件目录可写 | `ls -d "$HH/plugins"` | 存在且可写 |
+| 3 | 插件目录可写 | `[ -w "$HH/plugins" ] && echo writable \|\| echo "missing-or-readonly"` | `writable` |
 | 4 | **API key** | 见 §2.2 | 至少有一把（国际站 / 国内站） |
 
 ### 2.2 API key 从哪来 —— **停下问用户，不要让用户把 key 贴进聊天**
@@ -68,26 +67,26 @@ HH="$(dirname "$(hermes config path)")" && echo "$HH"
 ### 3.1 来源 A（推荐）：一条命令从 Git 源安装
 
 ```bash
-hermes plugins install linkaixiang4883/hermes-plugins/image_gen/agnes-image --enable
+hermes plugins install linkaixiang4883/hermes-plugins/agnes-image --enable
 ```
 
 **装固定版本**（`--ref` 只接受完整 40 位 commit SHA，不接受 tag 名）：
 
 ```bash
 git ls-remote https://github.com/linkaixiang4883/hermes-plugins.git refs/heads/main
-hermes plugins install linkaixiang4883/hermes-plugins/image_gen/agnes-image --ref <40位SHA> --enable
+hermes plugins install linkaixiang4883/hermes-plugins/agnes-image --ref <40位SHA> --enable
 ```
 
 **从本机源码装**（本目录已是仓库子目录；在仓库根目录执行）：
 
 ```bash
 # macOS / Linux
-hermes plugins install "file://$PWD#image_gen/agnes-image" --enable
+hermes plugins install "file://$PWD#agnes-image" --enable
 ```
 
 ```powershell
 # Windows（pwsh）—— file:// 必须两斜杠，三斜杠会被 Git for Windows 解析失败（实测）
-hermes plugins install "file://C:/path/to/hermes-plugins#image_gen/agnes-image" --enable
+hermes plugins install "file://C:/path/to/hermes-plugins#agnes-image" --enable
 ```
 
 > 首次装会打一行 `custom (unreviewed) source` 警告 —— 不在官方 catalog 里都这样，不是错误。
@@ -97,10 +96,15 @@ hermes plugins install "file://C:/path/to/hermes-plugins#image_gen/agnes-image" 
 没有 `git` / 完全离线时：
 
 ```bash
-mkdir -p "$HH/plugins" && cp -r <本目录> "$HH/plugins/agnes-image"
+mkdir -p "$HH/plugins" && cp -r "C:/path/to/hermes-plugins/agnes-image" "$HH/plugins/agnes-image"
 ```
 
-⚠️ 目标目录名必须是 **`agnes-image`**（= `plugin.yaml` 的 `name`），不是 `image_gen/agnes-image`。
+```powershell
+New-Item -ItemType Directory -Force "$env:HERMES_HOME/plugins" | Out-Null
+Copy-Item -Recurse -Force "C:/path/to/hermes-plugins/agnes-image" "$env:HERMES_HOME/plugins/agnes-image"
+```
+
+⚠️ 目标目录名必须是 **`agnes-image`**（= `plugin.yaml` 的 `name`）。
 
 ### 3.3 写 API key 到 `$HH/.env`
 
@@ -142,16 +146,16 @@ hermes plugins enable agnes-image       # 若 §3.1 已带 --enable 则会提示
 | **直接改 config** | 在 `config.yaml` 里写 `image_gen.provider: agnes-image`（国内站写 `agnes-cn-image`） |
 | **桌面端 App** | **Capabilities → Toolsets** → Image Generation → 详情里的 provider 面板选 |
 
-生成出来的图片落在 `<HERMES_HOME>/cache/images/`（`save_b64_image` / `save_url_image`）。
+生成出来的图片落在 `<HERMES_HOME>/cache/generated/images/`（`save_b64_image` / `save_url_image`）。
 
 ## 5. 验收（每条都要真跑，贴真实输出；不许"应该没问题"）
 
 ### 5.1 清单与契约
 
 ```bash
-hermes plugins list | grep -i agnes-image                 # 期望：enabled，版本 1.2.2
+hermes plugins list | grep -i agnes-image                 # 期望 Status = enabled，Version = 1.2.2
 hermes plugins validate "$HH/plugins/agnes-image"          # 期望：Validation passed
-hermes plugins doctor  "$HH/plugins/agnes-image"           # 期望：OK: runtime discovery, manifest parsing, import, and registration passed
+hermes plugins doctor  "$HH/plugins/agnes-image"           # 期望：OK: runtime discovery, manifest parsing, import, and registration passed；末行 registrations 为 0 tool(s), 0 hook(s), provider(s): agnes-image, agnes-cn-image（backend 插件 0 tools/0 hooks 正常，provider 行才是关键）
 ```
 
 ### 5.2 注册自检（最硬的一条：直接断言"两个 provider 都注册了"）
@@ -201,21 +205,19 @@ PYEOF
 
 ### 5.3 重启后确认（等用户确认已重启再跑）
 
-```bash
-hermes plugins list | grep -i agnes-image      # 期望 Status = enabled，Version = 1.2.2
-```
+重启后重跑 §5.1 的前三条命令，期望值同上。
 
 
 ## 6. 故障对照表
 
 | 症状 | 原因 | 处理 |
 |---|---|---|
-| `hermes plugins list` 里**根本没有** `agnes-image` | 没装进去 / 目录名不对 | 确认 `$HH/plugins/agnes-image/plugin.yaml` 存在；目录名必须是 `agnes-image`（不是 `image_gen/agnes-image`） |
+| `hermes plugins list` 里**根本没有** `agnes-image` | 没装进去 / 目录名不对 | 确认 `$HH/plugins/agnes-image/plugin.yaml` 存在；目录名必须是 `agnes-image`（旧的分类布局已废弃，装错就删掉重装） |
 | 显示 `disabled` 或缺 `enabled` | 白名单没写 | `hermes plugins enable agnes-image`（`config.yaml` 是安全敏感文件，**不要**手工改，用 CLI） |
 | 显示 `requires hermes >=0.21.6, running X.Y.Z` + `0 tool(s), 0 hook(s)` | 版本门控**干净跳过**（无 traceback） | 升级 Hermes；或按 §3.1 装匹配的旧版本插件 |
-| `doctor` 报 `import` 失败 | 依赖符号变动 / 包不完整 | 贴出报错全文；确认 ``agent.image_gen_provider` 的 `ImageGenProvider` 及 `ctx.register_image_gen_provider` 在 v0.21.6 起存在` |
-| 重启后验收 §5.2 过了、但功能仍不可用 | key 没填 / 填错站点 | 回 §3.3 检查（只查非空，别打印值）；确认 `只用一家时另一把留空即可（另一个 provider 会 `is_available() == False`，但不影响这个）` |
-| 装完目录在 `plugins/image_gen/agnes-image/` 而不是 `plugins/agnes-image/` | 装法错了（手抄路径没扁平化） | 移正：`mv "$HH/plugins/image_gen/agnes-image" ...` 不适用——**删掉重装**（§3.1 或 §3.2 目标名写对） |
+| `doctor` 报 `import` 失败 | 依赖符号变动 / 包不完整 | 贴出报错全文；确认 `agent.image_gen_provider` 的 `ImageGenProvider` 与 `ctx.register_image_gen_provider` 在 v0.21.6 起存在 |
+| 重启后验收 §5.2 过了、但功能仍不可用 | key 没填 / 填错站点 | 回 §3.3 检查（只查非空，别打印值）；只用一家时另一把留空即可，另一个 provider 的 is_available() 是 False，不影响当前这个 |
+| 装完目录在 `plugins/image_gen/agnes-image/`（旧布局） | 2026-11 之前的老装法，或手抄了分类路径 | 删掉重装：`hermes plugins remove agnes-image` 后按 §3.1 装；新装一律落在 `plugins/agnes-image/` |
 
 ## 7. 卸载 / 更新
 
@@ -226,7 +228,7 @@ hermes plugins remove  agnes-image     # 连目录一起删
 ```
 
 本插件**不产生任何数据文件**，所以 `remove` 没有需要保留的东西。
-（注意用**插件名** `agnes-image`；`agnes-image` / `agnes-cn-image` 是 **provider id**，出现在 `config.yaml` 的 `image_gen.provider` 里，别混。）
+（注意区别：安装 / 卸载用**插件名** `agnes-image`；`image_gen.provider` 里填的是 **provider id**（`agnes-image` 或 `agnes-cn-image`）—— 插件名恰好与其中一个 provider id 同名，不是笔误。）
 
 > `update` 同时就是"检查更新"：有新版会打印 `Re-installed from <源>: 旧..新`，没有则 `already up to date`。
 > ⚠️ 只在**按 §3.1 用 `install` 装的**上面有效；**§3.2 手工复制**的没有装源记录，`update` 会拒绝
@@ -247,17 +249,17 @@ hermes plugins remove  agnes-image     # 连目录一起删
 
 ## 附录 A：文件清单与校验和
 
-安装完在 `$HH/plugins/agnes-image/` 下应恰好是这 2 个文件 + 本说明书 `AGENT-INSTALL.md`（说明书不参与校验；`__pycache__/` 是运行期产物）：
+安装完在 `$HH/plugins/agnes-image/` 下应恰好是这 2 个文件 + 两份文档 `AGENT-INSTALL.md`、`CHANGELOG.md`（文档不参与校验；`__pycache__/` 是运行期产物）：
 
 | 文件 | 字节 | sha256 |
 |---|---|---|
-| `__init__.py` | 13232 | `c3db02a9867857a75783e2328e94be59046e2016283a668f6cf003c5dbf79967` |
+| `__init__.py` | 13286 | `18e6a247e0f6d884b9da3b49733b45747a45f2865bd097c6448b0086e977db8e` |
 | `plugin.yaml` | 881 | `5001ffaf6e05503e0fb41739f26c25ed694ed11a2dbf92209bc507146ac87b3c` |
 
 自查（可选）：
 
 ```bash
-cd "$HH/plugins/agnes-image" && find . -type f -not -name 'AGENT-INSTALL.md' -not -path '*__pycache__*' -print0 | xargs -0 sha256sum | sort
+cd "$HH/plugins/agnes-image" && find . -type f -not -name 'AGENT-INSTALL.md' -not -name 'CHANGELOG.md' -not -path '*__pycache__*' -print0 | xargs -0 sha256sum | sort
 ```
 
 ---
@@ -268,7 +270,7 @@ cd "$HH/plugins/agnes-image" && find . -type f -not -name 'AGENT-INSTALL.md' -no
 the bundled `opencode-zen`): `agnes-image` (international, `AGNES_API_KEY`, also serves `agnes-image-2.0-flash`) and `agnes-cn-image` (domestic, `AGNES_CN_API_KEY`, no 2.0-flash). Hermes has no variant/sub-selection
 concept, so they appear as **two side-by-side entries**, not as a sub-choice.
 
-Install with `hermes plugins install linkaixiang4883/hermes-plugins/image_gen/agnes-image --enable`, put the API
+Install with `hermes plugins install linkaixiang4883/hermes-plugins/agnes-image --enable`, put the API
 key(s) in `<HERMES_HOME>/.env` (AGNES_API_KEY / AGNES_CN_API_KEY; only one is required if you use a single region),
 then **restart the hosting process** (desktop app / `hermes dashboard` / `gateway run`) — the provider
 registry is discovered once per process. Verify with `hermes plugins doctor`, plus the inline probe in

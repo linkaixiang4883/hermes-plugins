@@ -36,7 +36,7 @@ ProviderSpec 字段：
 
 当前已实现：opencode-go、commandcode-goat。
 
-  commandcode-goat —— Command Code GOAT（$10/月；5h 上限 $14、每周 $35、月额度 $70）。
+  commandcode-goat —— Command Code GOAT（$70/月；5h 上限 $14、每周 $35、月额度 $70）。
   取数端点（免登录，API key 与调模型同一把；cli.mjs 实测契约）：
     GET https://api.commandcode.ai/alpha/billing/credits        → 两个滚动窗（used/cap/resetAt）+ 剩余 credits
     GET https://api.commandcode.ai/alpha/billing/subscriptions  → planId（→ 月池）+ 账单周期
